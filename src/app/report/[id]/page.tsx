@@ -188,24 +188,11 @@ export default function ReportPage() {
           {insight && <Insight text={insight} />}
         </SectionCard>
 
-        {/* ===== PAYWALL — 블러 영역 확실하게 ===== */}
+        {/* ===== PAYWALL ===== */}
         {!isUnlocked && (
           <>
-            {/* 블러 카드: 생존 성적표 + 경쟁 리스트 실루엣 (흰색 오버레이 제거) */}
-            <div className="pointer-events-none select-none space-y-3" aria-hidden="true">
-              <div className="bg-white/80 p-6 rounded-[24px] blur-[12px] opacity-40 space-y-3 shadow-md">
-                <div className="h-5 bg-amber-200 rounded w-1/3" />
-                <div className="flex gap-2"><div className="flex-1 h-16 bg-amber-100 rounded-xl" /><div className="flex-1 h-16 bg-slate-100 rounded-xl" /><div className="flex-1 h-16 bg-blue-100 rounded-xl" /></div>
-                <div className="flex gap-2"><div className="flex-1 h-8 bg-emerald-100 rounded-lg" /><div className="flex-1 h-8 bg-rose-100 rounded-lg" /></div>
-              </div>
-              <div className="bg-white/80 p-6 rounded-[24px] blur-[12px] opacity-35 space-y-2 shadow-md">
-                <div className="h-5 bg-indigo-200 rounded w-2/5" />
-                <div className="h-9 bg-slate-100 rounded-lg" /><div className="h-9 bg-slate-100 rounded-lg" /><div className="h-9 bg-slate-100 rounded-lg" />
-              </div>
-            </div>
-
-            {/* 잠금 해제 CTA 카드 */}
-            <div className="bg-white rounded-[24px] shadow-2xl border border-indigo-100 p-8 text-center -mt-2 relative z-20">
+            {/* CTA 카드 — Free 영역 바로 아래 */}
+            <div className="bg-white rounded-[24px] shadow-2xl border border-indigo-100 p-8 text-center relative z-20">
               <div className="w-16 h-16 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-5 shadow-lg">
                 <Lock className="w-7 h-7 text-indigo-600" />
               </div>
@@ -475,17 +462,7 @@ export default function ReportPage() {
         </div>
       </div>
 
-      {/* Sticky */}
-      {!isUnlocked && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-8 pt-10 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-slate-50/90 to-transparent -z-10" />
-          <div className="max-w-lg mx-auto pointer-events-auto">
-            <Button onClick={() => setIsUnlocked(true)} className="w-full h-16 text-[16px] font-black bg-slate-900 hover:bg-slate-800 text-white rounded-[20px] shadow-lg flex items-center justify-center gap-2">
-              <Lock className="w-5 h-5 text-indigo-400" /> 프리미엄 15개 섹션 잠금해제 <span className="text-indigo-300 font-black ml-1">₩3,900</span>
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Sticky 네비바 CTA 제거됨 — 결제 버튼은 보고서 내 CTA 카드에만 존재 */}
     </main>
   );
 }
