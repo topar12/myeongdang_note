@@ -768,22 +768,30 @@ function isSameCategory(store: RadiusStore, businessCategory: string): boolean {
   const targetKey = normalizeBusinessCategoryKey(businessCategory);
   const normalizedTarget = normalizeComparableText(businessCategory);
 
-  // 1. 카테고리 필드 매칭
-  const categoryMatch = [store.businessCategorySmall, store.businessCategoryMedium, store.businessCategoryLarge]
-    .filter((category): category is string => category.length > 0)
-    .some((category) => {
-      const normalizedCategory = normalizeComparableText(category);
-      if (normalizedCategory === normalizedTarget) return true;
-      const categoryKey = normalizeBusinessCategoryKey(category);
-      return categoryKey === targetKey && !(categoryKey === "retail" && normalizedCategory !== normalizedTarget);
-    });
+  // 1. business_category_small 정확 일치 (가장 정확)
+  if (store.businessCategorySmall) {
+    const smallNorm = normalizeComparableText(store.businessCategorySmall);
+    if (smallNorm === normalizedTarget) return true;
+    const smallKey = normalizeBusinessCategoryKey(store.businessCategorySmall);
+    if (smallKey === targetKey && smallKey !== "retail") return true;
+  }
 
-  if (categoryMatch) return true;
+  // 2. 상호명에 업종 키워드 포함 (예: "○○약국", "○○카페")
+  if (store.storeName) {
+    const nameKey = normalizeBusinessCategoryKey(store.storeName);
+    if (nameKey === targetKey && nameKey !== "retail") return true;
+  }
 
-  // 2. 상호명에 업종 키워드 포함 여부 (예: "○○약국" → pharmacy)
-  const storeName = normalizeComparableText(store.storeName);
-  const storeNameKey = normalizeBusinessCategoryKey(store.storeName);
-  return storeNameKey === targetKey && storeNameKey !== "retail";
+  // 3. medium/large 매칭 (단, retail은 제외 — 너무 넓음)
+  for (const cat of [store.businessCategoryMedium, store.businessCategoryLarge]) {
+    if (!cat) continue;
+    const catNorm = normalizeComparableText(cat);
+    if (catNorm === normalizedTarget) return true;
+    const catKey = normalizeBusinessCategoryKey(cat);
+    if (catKey === targetKey && catKey !== "retail" && catKey !== "restaurant") return true;
+  }
+
+  return false;
 }
 
 function calculateOperatedMonths(

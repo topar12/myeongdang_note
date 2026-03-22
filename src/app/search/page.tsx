@@ -2,461 +2,359 @@
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, MapPin, Navigation, Minus, Plus } from 'lucide-react';
-import { StepWizard } from '@/components/search/StepWizard';
-import { CategorySwiper } from '@/components/search/CategorySwiper';
+import { Search, MapPin, Navigation, ChevronDown, Sparkles } from 'lucide-react';
 import { LoadingProgress } from '@/components/search/LoadingProgress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const STEPS = [
-  { id: 1, label: '위치' },
-  { id: 2, label: '업종' },
-  { id: 3, label: '리포트 생성' },
-];
+const FIXED_RADIUS = 500;
 
-const FIXED_RADIUS = 500; // 반경 500m 고정
+const CATEGORIES = [
+  { group: '음식', items: [
+    { value: '카페', label: '☕ 카페' },
+    { value: '일반음식점', label: '🍽 음식점' },
+    { value: '제과점', label: '🍰 베이커리' },
+    { value: '휴게음식점', label: '🧁 디저트' },
+    { value: '단란주점', label: '🍺 주점' },
+  ]},
+  { group: '생활', items: [
+    { value: '미용업', label: '💇 미용실' },
+    { value: '세탁업', label: '👔 세탁소' },
+    { value: '체력단련장', label: '💪 헬스장' },
+    { value: '목욕장', label: '🧖 사우나' },
+  ]},
+  { group: '건강', items: [
+    { value: '약국', label: '💊 약국' },
+    { value: '의원', label: '🏥 의원' },
+    { value: '병원', label: '🏨 병원' },
+    { value: '안경업', label: '👓 안경원' },
+  ]},
+  { group: '기타', items: [
+    { value: 'PC방', label: '🖥 PC방' },
+    { value: '숙박업', label: '🏨 숙박' },
+    { value: '동물병원', label: '🐕 동물병원' },
+    { value: '편의점', label: '🏪 편의점' },
+  ]},
+];
 
 function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [currentStep, setCurrentStep] = useState(1);
   const [address, setAddress] = useState('');
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
-  const radius = FIXED_RADIUS;
-  const [nearbyCount, setNearbyCount] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Array<{ addressName: string; lat: number; lng: number; placeName?: string; roadAddressName?: string }>>([]);
   const [showResults, setShowResults] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [nearbyCount, setNearbyCount] = useState<number | null>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
-  const circleRef = useRef<any>(null);
+  const mapInstanceRef = useRef<unknown>(null);
+  const markerRef = useRef<unknown>(null);
+  const circleRef = useRef<unknown>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nearbyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 카카오맵 초기화
   useEffect(() => {
-    const kakao = (window as any).kakao;
+    const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown> | undefined;
     if (!kakao?.maps) return;
-
-    kakao.maps.load(() => {
+    const maps = kakao.maps as Record<string, unknown>;
+    (maps.load as (cb: () => void) => void)(() => {
       if (!mapRef.current) return;
-
-      const defaultLat = 36.3525;
-      const defaultLng = 127.3858;
-
-      const map = new kakao.maps.Map(mapRef.current, {
-        center: new kakao.maps.LatLng(defaultLat, defaultLng),
-        level: 5,
-      });
-
+      const defaultLat = 36.3525, defaultLng = 127.3858;
+      const Maps = maps.Map as new (el: HTMLElement, opts: unknown) => unknown;
+      const LatLng = maps.LatLng as new (lat: number, lng: number) => unknown;
+      const map = new Maps(mapRef.current, { center: new LatLng(defaultLat, defaultLng), level: 5 });
       mapInstanceRef.current = map;
       setMapReady(true);
 
-      // 지도 클릭 이벤트
-      kakao.maps.event.addListener(map, 'click', (mouseEvent: any) => {
-        const latlng = mouseEvent.latLng;
-        const lat = latlng.getLat();
-        const lng = latlng.getLng();
-        placeMarker(lat, lng);
-        reverseGeocode(lat, lng);
+      const event = maps.event as Record<string, unknown>;
+      (event.addListener as (target: unknown, type: string, cb: (e: Record<string, unknown>) => void) => void)(map, 'click', (mouseEvent) => {
+        const latlng = mouseEvent.latLng as Record<string, () => number>;
+        placeMarker(latlng.getLat(), latlng.getLng());
+        reverseGeocode(latlng.getLat(), latlng.getLng());
       });
 
-      // 현재 위치 시도
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            map.setCenter(new kakao.maps.LatLng(lat, lng));
-            map.setLevel(4);
-            placeMarker(lat, lng);
-            reverseGeocode(lat, lng);
-          },
-          () => {
-            // 위치 권한 거부 또는 실패 시 기본 위치 사용
-            placeMarker(defaultLat, defaultLng);
-            reverseGeocode(defaultLat, defaultLng);
-          },
+          (pos) => { const {latitude: lat, longitude: lng} = pos.coords; (map as Record<string, unknown>).setCenter = ((map as Record<string, (arg: unknown) => void>).setCenter); (map as Record<string, (arg: unknown) => void>).setCenter(new LatLng(lat, lng)); (map as Record<string, (arg: unknown) => void>).setLevel(4 as unknown); placeMarker(lat, lng); reverseGeocode(lat, lng); },
+          () => { placeMarker(defaultLat, defaultLng); reverseGeocode(defaultLat, defaultLng); },
           { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
         );
-      } else {
-        placeMarker(defaultLat, defaultLng);
-        reverseGeocode(defaultLat, defaultLng);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 반경 변경 시 원 업데이트
-  useEffect(() => {
-    if (coordinates && mapReady) {
-      updateCircle(coordinates.lat, coordinates.lng);
-      fetchNearbyCount(coordinates.lat, coordinates.lng, radius);
-    }
-  }, [radius, coordinates, mapReady]);
-
   const placeMarker = useCallback((lat: number, lng: number) => {
-    const kakao = (window as any).kakao;
+    const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+    const maps = kakao.maps as Record<string, unknown>;
     if (!mapInstanceRef.current) return;
-
     setCoordinates({ lat, lng });
-
-    // 기존 마커 제거
-    if (markerRef.current) markerRef.current.setMap(null);
-
-    const marker = new kakao.maps.Marker({
-      position: new kakao.maps.LatLng(lat, lng),
-      map: mapInstanceRef.current,
-      draggable: true,
-    });
-
-    // 마커 드래그 이벤트
-    kakao.maps.event.addListener(marker, 'dragend', () => {
-      const pos = marker.getPosition();
-      const newLat = pos.getLat();
-      const newLng = pos.getLng();
+    if (markerRef.current) ((markerRef.current as Record<string, (arg: unknown) => void>).setMap)(null);
+    const LatLng = maps.LatLng as new (lat: number, lng: number) => unknown;
+    const Marker = maps.Marker as new (opts: unknown) => unknown;
+    const marker = new Marker({ position: new LatLng(lat, lng), map: mapInstanceRef.current, draggable: true });
+    const event = maps.event as Record<string, unknown>;
+    (event.addListener as (target: unknown, type: string, cb: () => void) => void)(marker, 'dragend', () => {
+      const pos = (marker as Record<string, () => Record<string, () => number>>).getPosition();
+      const newLat = pos.getLat(), newLng = pos.getLng();
       setCoordinates({ lat: newLat, lng: newLng });
       updateCircle(newLat, newLng);
       reverseGeocode(newLat, newLng);
     });
-
     markerRef.current = marker;
     updateCircle(lat, lng);
+    fetchNearbyCount(lat, lng);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateCircle = useCallback((lat: number, lng: number) => {
-    const kakao = (window as any).kakao;
+    const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+    const maps = kakao.maps as Record<string, unknown>;
     if (!mapInstanceRef.current) return;
-
-    if (circleRef.current) circleRef.current.setMap(null);
-
-    const circle = new kakao.maps.Circle({
-      center: new kakao.maps.LatLng(lat, lng),
-      radius,
-      strokeWeight: 2,
-      strokeColor: '#2563EB',
-      strokeOpacity: 0.8,
-      fillColor: '#2563EB',
-      fillOpacity: 0.12,
-      map: mapInstanceRef.current,
+    if (circleRef.current) ((circleRef.current as Record<string, (arg: unknown) => void>).setMap)(null);
+    const LatLng = maps.LatLng as new (lat: number, lng: number) => unknown;
+    const Circle = maps.Circle as new (opts: unknown) => unknown;
+    circleRef.current = new Circle({
+      center: new LatLng(lat, lng), radius: FIXED_RADIUS,
+      strokeWeight: 2, strokeColor: '#2563EB', strokeOpacity: 0.8,
+      fillColor: '#2563EB', fillOpacity: 0.12, map: mapInstanceRef.current,
     });
-
-    circleRef.current = circle;
-  }, [radius]);
+  }, []);
 
   const reverseGeocode = useCallback((lat: number, lng: number) => {
-    const kakao = (window as any).kakao;
-    const geocoder = new kakao.maps.services.Geocoder();
-    geocoder.coord2Address(lng, lat, (result: any, status: any) => {
-      if (status === kakao.maps.services.Status.OK && result[0]) {
-        const addr = result[0].road_address?.address_name || result[0].address.address_name;
-        setAddress(addr);
+    const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+    const maps = kakao.maps as Record<string, unknown>;
+    const services = maps.services as Record<string, unknown>;
+    const Geocoder = services.Geocoder as new () => Record<string, (lng: number, lat: number, cb: (result: Array<Record<string, Record<string, string> | null>>, status: string) => void) => void>;
+    const geocoder = new Geocoder();
+    const Status = services.Status as Record<string, string>;
+    geocoder.coord2Address(lng, lat, (result, status) => {
+      if (status === Status.OK && result[0]) {
+        setAddress(result[0].road_address?.address_name || result[0].address?.address_name || '');
       }
     });
-    fetchNearbyCount(lat, lng, radius);
-  }, [radius]);
+    fetchNearbyCount(lat, lng);
+  }, []);
 
-  const fetchNearbyCount = useCallback((lat: number, lng: number, r: number) => {
+  const fetchNearbyCount = useCallback((lat: number, lng: number) => {
     if (nearbyTimerRef.current) clearTimeout(nearbyTimerRef.current);
     nearbyTimerRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search/nearby?lat=${lat}&lng=${lng}&radius=${r}`);
+        const res = await fetch(`/api/search/nearby?lat=${lat}&lng=${lng}&radius=${FIXED_RADIUS}`);
         const json = await res.json();
         const data = json.data || json;
         setNearbyCount(data.count ?? data.stores?.length ?? 0);
-      } catch {
-        setNearbyCount(null);
-      }
+      } catch { setNearbyCount(null); }
     }, 500);
   }, []);
 
-  // 주소 검색 (자동완성)
   const handleSearchInput = useCallback((q: string) => {
     setSearchQuery(q);
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     if (q.length < 2) { setSearchResults([]); setShowResults(false); return; }
-
     searchTimerRef.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search/address?q=${encodeURIComponent(q)}`);
         const json = await res.json();
-        const data = json.data || json;
-        setSearchResults(data.results || []);
+        setSearchResults((json.data || json).results || []);
         setShowResults(true);
-      } catch {
-        setSearchResults([]);
-      }
+      } catch { setSearchResults([]); }
     }, 300);
   }, []);
 
-  const handleResultSelect = useCallback((result: any) => {
-    const lat = result.lat;
-    const lng = result.lng;
-    const addr = result.addressName || result.placeName || '';
-    setAddress(addr);
-    setSearchQuery(addr);
-    setCoordinates({ lat, lng });
+  const handleResultSelect = useCallback((result: { addressName: string; lat: number; lng: number }) => {
+    setAddress(result.addressName);
+    setSearchQuery(result.addressName);
+    setCoordinates({ lat: result.lat, lng: result.lng });
     setShowResults(false);
-
     if (mapInstanceRef.current) {
-      const kakao = (window as any).kakao;
-      mapInstanceRef.current.setCenter(new kakao.maps.LatLng(lat, lng));
-      mapInstanceRef.current.setLevel(4);
-      placeMarker(lat, lng);
+      const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+      const maps = kakao.maps as Record<string, unknown>;
+      const LatLng = maps.LatLng as new (lat: number, lng: number) => unknown;
+      ((mapInstanceRef.current as Record<string, (arg: unknown) => void>).setCenter)(new LatLng(result.lat, result.lng));
+      ((mapInstanceRef.current as Record<string, (arg: unknown) => void>).setLevel)(4 as unknown);
+      placeMarker(result.lat, result.lng);
     }
   }, [placeMarker]);
 
-  const [locating, setLocating] = useState(false);
-
   const handleMyLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      alert('이 브라우저에서는 위치 서비스를 지원하지 않습니다.');
-      return;
-    }
-
+    if (!navigator.geolocation) { alert('위치 서비스를 지원하지 않습니다.'); return; }
     setLocating(true);
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
+        const { latitude: lat, longitude: lng } = pos.coords;
         setLocating(false);
         if (mapInstanceRef.current) {
-          const kakao = (window as any).kakao;
-          mapInstanceRef.current.setCenter(new kakao.maps.LatLng(lat, lng));
-          mapInstanceRef.current.setLevel(4);
+          const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+          const maps = kakao.maps as Record<string, unknown>;
+          const LatLng = maps.LatLng as new (lat: number, lng: number) => unknown;
+          ((mapInstanceRef.current as Record<string, (arg: unknown) => void>).setCenter)(new LatLng(lat, lng));
+          ((mapInstanceRef.current as Record<string, (arg: unknown) => void>).setLevel)(4 as unknown);
           placeMarker(lat, lng);
           reverseGeocode(lat, lng);
         }
       },
-      (err) => {
-        setLocating(false);
-        if (err.code === 1) {
-          alert('위치 권한이 차단되어 있습니다.\n브라우저 설정에서 위치 권한을 허용해주세요.');
-        } else if (err.code === 2) {
-          alert('위치 정보를 가져올 수 없습니다.\nGPS 신호가 약하거나 네트워크를 확인해주세요.');
-        } else {
-          alert('위치 찾기가 시간 초과되었습니다.\n주소 검색을 이용해주세요.');
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
-      }
+      (err) => { setLocating(false); alert(err.code === 1 ? '위치 권한을 허용해주세요.' : '위치를 찾을 수 없습니다.'); },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   }, [placeMarker, reverseGeocode]);
 
-  // Step 3: 리포트 생성
-  useEffect(() => {
-    if (currentStep !== 3) return;
-    const generateReport = async () => {
-      try {
-        const lat = coordinates?.lat || 36.3525;
-        const lng = coordinates?.lng || 127.3858;
-        const finalAddress = address || '분석 주소';
-        const finalCategory = selectedCategory || '카페';
+  // 분석 시작
+  const handleAnalyze = useCallback(async () => {
+    if (!coordinates || !selectedCategory) return;
+    setIsGenerating(true);
+    try {
+      const res = await fetch('/api/report/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: address || '분석 주소', lat: coordinates.lat, lng: coordinates.lng, businessCategory: selectedCategory }),
+      });
+      const json = await res.json();
+      const reportData = json.data || json;
+      const reportId = reportData.reportId || `temp-${Date.now()}`;
+      localStorage.setItem('lastReport', JSON.stringify({
+        reportId, address, businessCategory: selectedCategory,
+        lat: coordinates.lat, lng: coordinates.lng,
+        freeData: reportData.freeData || null,
+      }));
+      setTimeout(() => router.push(`/report/${reportId}`), 3500);
+    } catch {
+      localStorage.setItem('lastReport', JSON.stringify({
+        reportId: 'demo', address, businessCategory: selectedCategory,
+        lat: coordinates.lat, lng: coordinates.lng, freeData: null,
+      }));
+      setTimeout(() => router.push('/report/demo'), 3500);
+    }
+  }, [coordinates, selectedCategory, address, router]);
 
-        const res = await fetch('/api/report/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: finalAddress, lat, lng, businessCategory: finalCategory }),
-        });
-        const json = await res.json();
-        const reportData = json.data || json;
-        const reportId = reportData.reportId || `temp-${Date.now()}`;
+  // 로딩 화면
+  if (isGenerating) {
+    return (
+      <main className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+        <LoadingProgress />
+      </main>
+    );
+  }
 
-        localStorage.setItem('lastReport', JSON.stringify({
-          reportId, address: finalAddress, businessCategory: finalCategory,
-          lat, lng,
-          freeData: reportData.freeData || null,
-        }));
-        setTimeout(() => router.push(`/report/${reportId}`), 4000);
-      } catch {
-        localStorage.setItem('lastReport', JSON.stringify({
-          reportId: 'demo', address: address || '분석 주소',
-          businessCategory: selectedCategory || '카페',
-          lat: coordinates?.lat || 36.3525, lng: coordinates?.lng || 127.3858,
-          freeData: null,
-        }));
-        setTimeout(() => router.push('/report/demo'), 4000);
-      }
-    };
-    generateReport();
-  }, [currentStep, address, coordinates, selectedCategory, router]);
+  const canAnalyze = coordinates && selectedCategory;
 
   return (
-    <main className="flex flex-col min-h-screen bg-slate-50/50">
-      <StepWizard currentStep={currentStep} steps={STEPS}>
-        {/* ===== STEP 1: 지도 기반 위치 선택 ===== */}
-        {currentStep === 1 && (
-          <div className="flex flex-col h-[calc(100vh-140px)] animate-in fade-in duration-300">
-            {/* 지도 영역 */}
-            <div className="relative flex-1 min-h-[40vh]">
-              <div ref={mapRef} className="w-full h-full rounded-b-2xl" />
+    <main className="flex flex-col min-h-screen bg-white">
 
-              {/* 지도 위 검색바 오버레이 */}
-              <div className="absolute top-3 left-3 right-3 z-10">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                  <Input
-                    className="pl-10 pr-4 h-12 text-base bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border-0"
-                    placeholder="주소 또는 장소 검색"
-                    value={searchQuery}
-                    onChange={(e) => handleSearchInput(e.target.value)}
-                    onFocus={() => searchResults.length > 0 && setShowResults(true)}
-                  />
-                  {/* 자동완성 드롭다운 */}
-                  {showResults && searchResults.length > 0 && (
-                    <div className="absolute top-14 left-0 right-0 bg-white rounded-xl shadow-xl border max-h-60 overflow-y-auto z-20">
-                      {searchResults.map((r: any, i: number) => (
-                        <button
-                          key={i}
-                          className="w-full text-left px-4 py-3 hover:bg-slate-50 border-b last:border-0 flex items-start gap-3"
-                          onClick={() => handleResultSelect(r)}
-                        >
-                          <MapPin className="h-5 w-5 text-trust-blue mt-0.5 shrink-0" />
-                          <div>
-                            <div className="font-medium text-sm">{r.placeName || r.addressName}</div>
-                            {r.roadAddressName && (
-                              <div className="text-xs text-slate-400 mt-0.5">{r.roadAddressName}</div>
-                            )}
-                          </div>
-                        </button>
-                      ))}
+      {/* 지도 — 고정 높이, 스크롤과 분리 */}
+      <div className="relative h-[45vh] min-h-[280px] max-h-[400px]">
+        <div ref={mapRef} className="w-full h-full" />
+
+        {/* 검색바 오버레이 */}
+        <div className="absolute top-3 left-3 right-3 z-10">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Input
+              className="pl-10 pr-4 h-12 text-base bg-white/95 backdrop-blur rounded-xl shadow-lg border-0"
+              placeholder="주소 또는 장소 검색"
+              value={searchQuery}
+              onChange={(e) => handleSearchInput(e.target.value)}
+              onFocus={() => searchResults.length > 0 && setShowResults(true)}
+            />
+            {showResults && searchResults.length > 0 && (
+              <div className="absolute top-14 left-0 right-0 bg-white rounded-xl shadow-xl border max-h-60 overflow-y-auto z-20">
+                {searchResults.map((r, i) => (
+                  <button key={i} className="w-full text-left px-4 py-3 hover:bg-slate-50 border-b last:border-0 flex items-start gap-3" onClick={() => handleResultSelect(r)}>
+                    <MapPin className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-medium text-sm">{r.placeName || r.addressName}</div>
+                      {r.roadAddressName && <div className="text-xs text-slate-400 mt-0.5">{r.roadAddressName}</div>}
                     </div>
-                  )}
-                </div>
+                  </button>
+                ))}
               </div>
+            )}
+          </div>
+        </div>
 
-              {/* 현재 위치 버튼 */}
-              <button
-                onClick={handleMyLocation}
-                disabled={locating}
-                className="absolute bottom-4 right-4 z-10 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-95 transition disabled:opacity-50"
-              >
-                {locating ? (
-                  <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Navigation className="h-5 w-5 text-trust-blue" />
-                )}
-              </button>
+        {/* 현재 위치 버튼 */}
+        <button onClick={handleMyLocation} disabled={locating}
+          className="absolute bottom-3 right-3 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-95 transition disabled:opacity-50">
+          {locating ? <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <Navigation className="h-4 w-4 text-blue-600" />}
+        </button>
+      </div>
+
+      {/* 하단 패널 — 스크롤 가능한 영역 */}
+      <div className="flex-1 bg-white rounded-t-[24px] -mt-4 relative z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+        {/* 핸들 바 */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 bg-slate-200 rounded-full" />
+        </div>
+
+        <div className="px-5 pb-8 space-y-5">
+
+          {/* 선택된 위치 */}
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <MapPin className="h-4 w-4 text-blue-600 shrink-0" />
+              <span className="font-bold text-[15px] text-slate-800 truncate">
+                {address || '지도를 터치하여 위치를 선택하세요'}
+              </span>
             </div>
+            {nearbyCount !== null && (
+              <p className="text-xs text-slate-400 ml-6">반경 500m · 상가 {nearbyCount.toLocaleString()}개</p>
+            )}
+          </div>
 
-            {/* 하단 정보 패널 */}
-            <div className="bg-white px-4 pt-4 pb-3 space-y-3 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-              {/* 선택된 주소 */}
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-trust-blue shrink-0" />
-                <span className="font-bold text-base text-slate-800 truncate">
-                  {address || '지도를 터치하여 위치를 선택하세요'}
-                </span>
-              </div>
-
-              {/* 반경 500m 고정 */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500 shrink-0">반경 500m 분석</span>
-                <div className="flex-1" />
-                {nearbyCount !== null && (
-                  <span className="text-sm font-bold text-trust-blue shrink-0">
-                    {nearbyCount.toLocaleString()}개
-                  </span>
-                )}
-              </div>
-
-              {/* 다음 버튼 */}
-              <Button
-                className="w-full h-14 text-lg font-bold bg-trust-blue hover:bg-trust-blue/90 text-white rounded-xl disabled:bg-slate-200 disabled:text-slate-400 shadow-sm"
-                onClick={() => coordinates && setCurrentStep(2)}
-                disabled={!coordinates}
+          {/* 업종 선택 */}
+          <div>
+            <label className="text-sm font-bold text-slate-600 mb-2 block">분석 업종</label>
+            <div className="relative">
+              <select
+                value={selectedCategory || ''}
+                onChange={(e) => setSelectedCategory(e.target.value || null)}
+                className="w-full h-13 px-4 pr-10 rounded-xl border-2 border-slate-200 bg-white text-[15px] font-bold text-slate-800 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer transition-colors"
               >
-                이 위치로 분석하기
-              </Button>
+                <option value="">업종을 선택하세요</option>
+                {CATEGORIES.map(g => (
+                  <optgroup key={g.group} label={g.group}>
+                    {g.items.map(item => (
+                      <option key={item.value} value={item.value}>{item.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
             </div>
           </div>
-        )}
 
-        {/* ===== STEP 2: 업종 선택 ===== */}
-        {currentStep === 2 && (
-          <div className="flex flex-col h-[calc(100vh-200px)] px-4 animate-in fade-in slide-in-from-right-8 duration-300">
-            <div className="mt-4 mb-6">
-              <h2 className="text-2xl font-bold mb-1 text-slate-900">어떤 업종이<br />궁금하세요?</h2>
-              <p className="text-muted-foreground text-sm">{address} 상권을 분석합니다.</p>
-            </div>
-            <select
-              value={selectedCategory || ''}
-              onChange={(e) => setSelectedCategory(e.target.value || null)}
-              className="w-full h-14 px-4 rounded-xl border-2 border-slate-200 bg-white text-base font-bold text-slate-800 focus:border-trust-blue focus:outline-none appearance-none cursor-pointer"
-              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center' }}
-            >
-              <option value="">업종을 선택하세요</option>
-              <optgroup label="음식">
-                <option value="카페">☕ 카페 / 커피숍</option>
-                <option value="일반음식점">🍽 일반 음식점</option>
-                <option value="제과점">🍰 베이커리 / 제과점</option>
-                <option value="휴게음식점">🧁 디저트 / 휴게음식점</option>
-                <option value="단란주점">🍺 호프 / 주점</option>
-              </optgroup>
-              <optgroup label="생활">
-                <option value="미용업">💇 미용실 / 네일</option>
-                <option value="세탁업">👔 세탁소</option>
-                <option value="체력단련장">💪 헬스장 / 피트니스</option>
-                <option value="목욕장">🧖 사우나 / 찜질방</option>
-              </optgroup>
-              <optgroup label="건강">
-                <option value="약국">💊 약국</option>
-                <option value="의원">🏥 의원 / 클리닉</option>
-                <option value="병원">🏨 병원</option>
-                <option value="안경업">👓 안경원</option>
-              </optgroup>
-              <optgroup label="문화/여가">
-                <option value="PC방">🖥 PC방</option>
-                <option value="노래연습장">🎤 노래방</option>
-                <option value="당구장">🎱 당구장</option>
-                <option value="숙박업">🏨 숙박 / 모텔</option>
-              </optgroup>
-              <optgroup label="반려동물">
-                <option value="동물병원">🐕 동물병원</option>
-                <option value="동물미용">🐩 애견미용</option>
-              </optgroup>
-              <optgroup label="기타">
-                <option value="부동산">🏠 부동산 중개</option>
-                <option value="편의점">🏪 편의점</option>
-                <option value="이용업">💈 이용원 (바버샵)</option>
-              </optgroup>
-            </select>
-            <div className="mt-auto pt-6 pb-4 flex gap-3">
-              <Button variant="outline" className="w-1/3 h-14 text-lg font-bold rounded-xl" onClick={() => setCurrentStep(1)}>이전</Button>
-              <Button
-                className="w-2/3 h-14 text-lg font-bold bg-trust-blue hover:bg-trust-blue/90 text-white rounded-xl disabled:bg-slate-200 disabled:text-slate-400 shadow-sm"
-                onClick={() => selectedCategory && setCurrentStep(3)}
-                disabled={!selectedCategory}
-              >
-                분석 시작하기
-              </Button>
-            </div>
-          </div>
-        )}
+          {/* 분석 시작 버튼 */}
+          <Button
+            onClick={handleAnalyze}
+            disabled={!canAnalyze}
+            className="w-full h-14 text-[16px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none transition-all"
+          >
+            {canAnalyze ? (
+              <><Sparkles className="w-5 h-5 mr-2" /> AI 상권 분석 시작</>
+            ) : (
+              '위치와 업종을 선택하세요'
+            )}
+          </Button>
 
-        {/* ===== STEP 3: 로딩 ===== */}
-        {currentStep === 3 && (
-          <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] animate-in fade-in zoom-in-95 duration-500">
-            <LoadingProgress />
-          </div>
-        )}
-      </StepWizard>
+          {/* 안내 텍스트 */}
+          <p className="text-[11px] text-slate-400 text-center">
+            반경 500m · 142만개 점포 DB · Gemini AI 분석
+          </p>
+        </div>
+      </div>
     </main>
   );
 }
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50/50" />}>
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
       <SearchContent />
     </Suspense>
   );
