@@ -334,25 +334,12 @@ export default function ReportPage() {
                 <b>&apos;감&apos;이 아닌 &apos;숫자&apos;로 결정하세요.</b>
               </p>
               
-              <Button onClick={() => setIsUnlocked(true)} className="w-full h-14 md:h-16 text-[16px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-[16px] shadow-[0_8px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.2)] transition-all flex items-center justify-center gap-2.5 group/btn border border-slate-700">
-                <ReceiptText className="w-5 h-5 text-indigo-300 group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-all" />
-                <div className="flex items-center">
-                  프리미엄 리포트 열람 <div className="w-1.5 h-1.5 rounded-full bg-slate-600 mx-2.5" /> <span className="text-indigo-300 font-black">₩4,900</span>
-                </div>
-              </Button>
-              
-              <div className="mt-5 flex flex-col items-center gap-2.5 w-full">
-                <p className="text-[11px] text-slate-400 font-extrabold tracking-tight bg-slate-100/50 px-3 py-1.5 rounded-lg border border-slate-100 w-full">
-                  💡 중개사도 안 알려주는 생존율 · 경쟁 전수 리스트 · AI 종합 의견
-                </p>
-                <div className="flex items-center justify-center gap-2 text-[9px] font-black tracking-widest text-slate-300 mt-2">
-                  <span className="flex items-center gap-1"><img src="/kp-icon.svg" className="w-3 h-3 opacity-50 hidden" alt="" /> KAKAO PAY</span>
-                  <span className="w-1 h-1 bg-slate-200 rounded-full" />
-                  <span className="flex items-center gap-1"><img src="/ap-icon.svg" className="w-3 h-3 opacity-50 hidden" alt="" /> APPLE PAY</span>
-                  <span className="w-1 h-1 bg-slate-200 rounded-full" />
-                  <span>CREDIT CARD</span>
-                </div>
-              </div>
+              <p className="text-[12px] text-slate-400 font-bold mt-2">
+                👇 아래 버튼을 눌러 잠금을 해제하세요
+              </p>
+              <p className="text-[11px] text-slate-400 font-medium mt-3 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 w-full text-center">
+                생존율 · 경쟁 전수 리스트 · AI 종합 의견 · 매출 추정
+              </p>
             </div>
           </div>
         )}
