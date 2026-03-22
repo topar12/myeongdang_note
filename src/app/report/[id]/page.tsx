@@ -188,26 +188,72 @@ export default function ReportPage() {
           {insight && <Insight text={insight} />}
         </SectionCard>
 
-        {/* ===== PAYWALL ===== */}
+        {/* ===== PAYWALL — 블러 영역 확실하게 ===== */}
         {!isUnlocked && (
-          <div className="relative rounded-[24px] overflow-hidden shadow-xl">
-            <div className="bg-white p-6 pointer-events-none select-none blur-[10px] opacity-50 space-y-3" aria-hidden="true">
-              <div className="flex gap-2"><div className="flex-1 h-16 bg-amber-100 rounded-xl" /><div className="flex-1 h-16 bg-slate-100 rounded-xl" /><div className="flex-1 h-16 bg-blue-100 rounded-xl" /></div>
-              <div className="h-8 bg-slate-100 rounded-lg" /><div className="h-8 bg-slate-100 rounded-lg" /><div className="h-8 bg-slate-100 rounded-lg" />
-              <div className="h-20 bg-indigo-50 rounded-xl" /><div className="h-12 bg-slate-50 rounded-lg" /><div className="h-12 bg-slate-50 rounded-lg" />
-              <div className="h-32 bg-slate-900 rounded-xl" />
+          <>
+            {/* 첫 번째 블러 카드: 생존 성적표 미리보기 */}
+            <div className="relative rounded-[24px] overflow-hidden">
+              <div className="bg-white p-6 pointer-events-none select-none blur-[14px] opacity-40 space-y-3" aria-hidden="true">
+                <div className="text-lg font-bold text-slate-400">🏆 생존 성적표</div>
+                <div className="flex gap-2">
+                  <div className="flex-1 h-20 bg-amber-100 rounded-xl" />
+                  <div className="flex-1 h-20 bg-slate-100 rounded-xl" />
+                  <div className="flex-1 h-20 bg-blue-100 rounded-xl" />
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex-1 h-10 bg-emerald-100 rounded-lg" />
+                  <div className="flex-1 h-10 bg-rose-100 rounded-lg" />
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-b from-white/90 to-white/70 rounded-[24px] z-10" />
             </div>
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-[24px] flex flex-col items-center justify-center px-6 py-10 text-center z-10">
-              <div className="w-16 h-16 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-5 shadow-lg"><Lock className="w-7 h-7 text-indigo-600" /></div>
-              <h3 className="text-xl font-extrabold text-slate-800 mb-1">프리미엄 분석 리포트</h3>
+
+            {/* 두 번째 블러 카드: 경쟁 리스트 미리보기 */}
+            <div className="relative rounded-[24px] overflow-hidden -mt-2">
+              <div className="bg-white p-6 pointer-events-none select-none blur-[14px] opacity-40 space-y-2" aria-hidden="true">
+                <div className="text-lg font-bold text-slate-400">🏪 경쟁 매장 전수 조사</div>
+                <div className="h-10 bg-slate-100 rounded-lg" />
+                <div className="h-10 bg-slate-100 rounded-lg" />
+                <div className="h-10 bg-slate-100 rounded-lg" />
+                <div className="h-10 bg-slate-100 rounded-lg" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-b from-white/85 to-white/60 rounded-[24px] z-10" />
+            </div>
+
+            {/* 잠금 해제 CTA 카드 */}
+            <div className="bg-white rounded-[24px] shadow-2xl border border-indigo-100 p-8 text-center -mt-2 relative z-20">
+              <div className="w-16 h-16 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-5 shadow-lg">
+                <Lock className="w-7 h-7 text-indigo-600" />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-800 mb-2">프리미엄 분석 리포트</h3>
               <p className="text-[13px] text-slate-400 mb-1">15개 섹션 · AI 종합 의견서 포함</p>
-              <p className="text-sm text-slate-500 mb-5">생존 성적표 · 폐업 타임라인 · 경쟁 전수 리스트<br />업종 분포 · 면적별 생존율 · 추천 업종</p>
-              <Button onClick={() => setIsUnlocked(true)} className="w-full max-w-xs h-14 text-[16px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg">
+              <div className="flex flex-wrap justify-center gap-1.5 my-4">
+                {['생존 성적표', '폐업 타임라인', '경쟁 전수 리스트', '업종 분포', '면적별 생존율', 'FC 비교', '배후 수요', '추천 업종', '매출 추정', 'BEP 시뮬', 'AI 의견서'].map((t, i) => (
+                  <span key={i} className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full border border-indigo-100">{t}</span>
+                ))}
+              </div>
+              <Button onClick={() => setIsUnlocked(true)} className="w-full max-w-xs h-14 text-[16px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg mx-auto">
                 <Coffee className="w-5 h-5 mr-2" /> ₩3,900 잠금 해제
               </Button>
               <p className="text-[11px] text-slate-400 mt-3">카카오페이 · 간편결제 · 커피보다 저렴</p>
             </div>
-          </div>
+
+            {/* 추가 블러 카드들: 아래에 더 많은 콘텐츠가 있다는 느낌 */}
+            <div className="space-y-3 pointer-events-none select-none" aria-hidden="true">
+              <div className="bg-white p-5 rounded-[24px] blur-[12px] opacity-30">
+                <div className="h-6 bg-slate-200 rounded w-1/3 mb-3" />
+                <div className="space-y-2"><div className="h-5 bg-slate-100 rounded" /><div className="h-5 bg-slate-100 rounded" /><div className="h-5 bg-slate-100 rounded" /></div>
+              </div>
+              <div className="bg-indigo-900 p-5 rounded-[24px] blur-[12px] opacity-20">
+                <div className="h-6 bg-white/20 rounded w-1/2 mb-3" />
+                <div className="h-16 bg-white/10 rounded-xl" />
+              </div>
+              <div className="bg-slate-900 p-5 rounded-[24px] blur-[12px] opacity-15">
+                <div className="h-6 bg-white/20 rounded w-2/3 mb-3" />
+                <div className="h-24 bg-white/10 rounded-xl" />
+              </div>
+            </div>
+          </>
         )}
 
         {/* ===== PAID 영역 (15개 중 11개) ===== */}
