@@ -238,19 +238,43 @@ export default function ReportPage() {
               <p className="text-[11px] text-slate-400 mt-3">카카오페이 · 간편결제 · 커피보다 저렴</p>
             </div>
 
-            {/* 추가 블러 카드들: 아래에 더 많은 콘텐츠가 있다는 느낌 */}
+            {/* 블러 미리보기 — 11개 Paid 섹션의 실루엣 */}
             <div className="space-y-3 pointer-events-none select-none" aria-hidden="true">
+              {/* 업종 분포 */}
               <div className="bg-white p-5 rounded-[24px] blur-[12px] opacity-30">
-                <div className="h-6 bg-slate-200 rounded w-1/3 mb-3" />
-                <div className="space-y-2"><div className="h-5 bg-slate-100 rounded" /><div className="h-5 bg-slate-100 rounded" /><div className="h-5 bg-slate-100 rounded" /></div>
+                <div className="h-5 bg-slate-200 rounded w-1/3 mb-3" />
+                <div className="space-y-2"><div className="h-6 bg-indigo-100 rounded" /><div className="h-6 bg-indigo-100/70 rounded" /><div className="h-6 bg-indigo-100/50 rounded" /><div className="h-6 bg-indigo-100/30 rounded" /></div>
               </div>
+              {/* 면적별 생존 */}
+              <div className="bg-white p-5 rounded-[24px] blur-[12px] opacity-25">
+                <div className="h-5 bg-slate-200 rounded w-2/5 mb-3" />
+                <div className="space-y-2"><div className="h-7 bg-emerald-100 rounded" /><div className="h-7 bg-amber-100 rounded" /><div className="h-7 bg-rose-100 rounded" /></div>
+              </div>
+              {/* FC비교 + 배후수요 */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white p-4 rounded-[24px] blur-[12px] opacity-25"><div className="h-5 bg-slate-200 rounded w-2/3 mb-2" /><div className="h-14 bg-indigo-50 rounded-xl" /></div>
+                <div className="bg-white p-4 rounded-[24px] blur-[12px] opacity-25"><div className="h-5 bg-slate-200 rounded w-2/3 mb-2" /><div className="h-14 bg-blue-50 rounded-xl" /></div>
+              </div>
+              {/* 추천 업종 */}
+              <div className="bg-white p-5 rounded-[24px] blur-[12px] opacity-20">
+                <div className="h-5 bg-amber-200 rounded w-1/3 mb-3" />
+                <div className="space-y-2"><div className="h-10 bg-slate-100 rounded-xl" /><div className="h-10 bg-slate-100 rounded-xl" /><div className="h-10 bg-slate-100 rounded-xl" /></div>
+              </div>
+              {/* 매출 추정 (다크) */}
               <div className="bg-indigo-900 p-5 rounded-[24px] blur-[12px] opacity-20">
-                <div className="h-6 bg-white/20 rounded w-1/2 mb-3" />
-                <div className="h-16 bg-white/10 rounded-xl" />
+                <div className="h-5 bg-white/20 rounded w-1/2 mb-3" />
+                <div className="flex gap-2"><div className="flex-1 h-16 bg-white/10 rounded-xl" /><div className="flex-1 h-20 bg-white/20 rounded-xl" /><div className="flex-1 h-16 bg-white/10 rounded-xl" /></div>
               </div>
-              <div className="bg-slate-900 p-5 rounded-[24px] blur-[12px] opacity-15">
-                <div className="h-6 bg-white/20 rounded w-2/3 mb-3" />
-                <div className="h-24 bg-white/10 rounded-xl" />
+              {/* BEP */}
+              <div className="bg-white p-5 rounded-[24px] blur-[12px] opacity-15">
+                <div className="h-5 bg-slate-200 rounded w-1/3 mb-3" />
+                <div className="h-16 bg-slate-100 rounded-xl mb-2" /><div className="h-10 bg-slate-50 rounded-lg" />
+              </div>
+              {/* AI 의견서 (다크) */}
+              <div className="bg-slate-900 p-6 rounded-[24px] blur-[12px] opacity-15">
+                <div className="h-5 bg-white/20 rounded w-2/3 mb-3" />
+                <div className="space-y-2"><div className="h-4 bg-white/10 rounded" /><div className="h-4 bg-white/10 rounded" /><div className="h-4 bg-white/10 rounded w-3/4" /></div>
+                <div className="h-20 bg-white/5 rounded-xl mt-3" />
               </div>
             </div>
           </>
