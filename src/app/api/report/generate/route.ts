@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
         {
           reportId: `temp-${Date.now()}`,
           freeData: analysis.freeData,
+          paidData: analysis.paidData,
           isPaid: false,
         },
         201,
@@ -61,8 +62,8 @@ export async function POST(request: NextRequest) {
     return jsonOk(
       {
         reportId: report.id,
-        freeData: report.freeData,
-        ...(report.isPaid && report.paidData ? { paidData: report.paidData } : {}),
+        freeData: analysis.freeData,
+        paidData: analysis.paidData,
         isPaid: report.isPaid,
       },
       201,

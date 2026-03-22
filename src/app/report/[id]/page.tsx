@@ -344,214 +344,167 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* ===== Paid Card (리포트 열람 권한 획득 후) ===== */}
+        {/* ===== Paid 영역 (잠금 해제 후) — 팩트 → 추정 → AI ===== */}
         {isUnlocked && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out fill-mode-both">
-            
-            {/* 지표 1: 추정 월매출 */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-[24px] border border-white shadow-[0_8px_40px_rgb(0,0,0,0.06)] p-6 group relative overflow-hidden ring-1 ring-indigo-50">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-blue-50/80 rounded-full blur-3xl -z-10 transform translate-x-10 -translate-y-10" />
-              
-              <h3 className="text-[17px] font-black text-slate-800 flex items-center gap-2.5 mb-7 tracking-tight">
-                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center shadow-lg shadow-indigo-200 border border-indigo-400">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                추정 월매출 구간 (AI)
-              </h3>
-              
-              <div className="flex items-end gap-2 mb-8">
-                <div className="text-center flex-1 bg-slate-50/80 rounded-2xl p-4 border border-slate-100 shadow-sm">
-                  <div className="text-[20px] font-extrabold text-slate-400 tracking-tighter">1,800<span className="text-[13px] font-bold ml-0.5">만</span></div>
-                  <div className="text-[11px] text-slate-400 font-black mt-1.5 tracking-tight">하위 25%</div>
-                </div>
-                <div className="text-center flex-[1.2] bg-white rounded-2xl p-5 border-2 border-indigo-100 shadow-[0_8px_30px_rgba(99,102,241,0.15)] transform -translate-y-3 relative">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full whitespace-nowrap tracking-wider shadow-md">MEDIAN (P50)</div>
-                  <div className="text-[30px] md:text-[36px] font-black text-slate-800 tracking-tighter tabular-nums mt-1 leading-none">2,400<span className="text-[16px] font-bold ml-0.5 text-slate-500">만</span></div>
-                </div>
-                <div className="text-center flex-1 bg-slate-50/80 rounded-2xl p-4 border border-slate-100 shadow-sm">
-                  <div className="text-[20px] font-extrabold text-slate-500 tracking-tighter">3,200<span className="text-[13px] font-bold ml-0.5">만</span></div>
-                  <div className="text-[11px] text-slate-400 font-black mt-1.5 tracking-tight">상위 25%</div>
-                </div>
-              </div>
-              
-              <div className="w-full bg-slate-100 rounded-full h-3.5 relative overflow-hidden shadow-inner mb-4 border border-slate-200/50">
-                <div className="absolute left-[25%] right-[25%] bg-gradient-to-r from-indigo-300 via-indigo-500 to-indigo-300 h-full rounded-full shadow-sm" />
-              </div>
-              
-              <div className="flex justify-center items-center gap-2 bg-indigo-50/50 w-fit mx-auto px-4 py-1.5 rounded-lg border border-indigo-100/50">
-                <span className="text-[11px] font-black text-indigo-900/60 tracking-wider">추정 신뢰도</span>
-                <span className="text-indigo-500 tracking-tighter text-sm flex gap-0.5">★★★★<span className="text-indigo-200">★</span></span>
-              </div>
-              <AIInsight text="해당 상권 카페 평균 중위 매출은 2,400만원이나, 꼬리표본(하위 25%)의 경우 1,100만원 선에 머무릅니다. 오픈빨이 끝난 뒤 상위 25%에 안착하는 것이 안정화의 핵심입니다." />
-            </div>
+          <div className="space-y-5">
 
-            {/* 지표 2: 임대료 감당력 */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-[24px] border border-white shadow-[0_8px_40px_rgb(0,0,0,0.06)] p-6 group">
-              <h3 className="text-[17px] font-black text-slate-800 flex items-center gap-2.5 mb-6 tracking-tight">
-                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center border border-white shadow-inner">
-                  <Target className="w-4 h-4 text-emerald-600" />
-                </div>
-                임대료 감당 시뮬레이터
-              </h3>
-              
-              <div className="mb-6 bg-slate-50/80 rounded-[20px] p-5 border border-slate-100 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
-                  <span className="text-[13px] font-extrabold text-slate-500 tracking-wide">타겟 월 임대료</span>
-                  <span className="text-[24px] font-black text-slate-800 tracking-tight">{monthlyRent}<span className="text-[14px] font-bold text-slate-500 ml-1">만원</span></span>
-                </div>
-                <Slider
-                  value={rent}
-                  onValueChange={(value) =>
-                    setRent(Array.isArray(value) ? [...value] : [value])
-                  }
-                  min={50}
-                  max={500}
-                  step={10}
-                  className="py-2 cursor-pointer"
-                />
-                <div className="flex justify-between text-[11px] font-bold text-slate-400 mt-3 px-1">
-                  <span>50만</span><span>500만</span>
-                </div>
-              </div>
-              
-              <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-[20px] p-6 text-center shadow-xl overflow-hidden text-white border border-slate-800 isolate">
-                <div className="absolute -top-12 -right-12 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl" />
-                <p className="text-[12px] text-slate-300 font-bold tracking-widest mb-3 opacity-90 drop-shadow-sm uppercase">손익분기점 (BEP) 필요 판매량</p>
-                <div className="flex items-center justify-center gap-3 mb-5">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 shadow-inner">
-                    <Coffee className="w-5 h-5 text-indigo-300" />
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[52px] font-black tracking-tighter drop-shadow-md leading-none tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-300">{dailyCoffee}</span>
-                    <span className="text-[16px] text-slate-400 font-bold">잔/일</span>
-                  </div>
-                </div>
-                <RiskBadge level={rentRisk} />
-              </div>
-              
-              <AIInsight text={`현재 시뮬레이션된 월세 ${monthlyRent}만원 기준, 적자 회피를 위해 매일 ${dailyCoffee}잔 판매가 요구됩니다. ${rentRisk === 'safe' ? '경쟁점 평균 대비 매우 우수한 비용 구조를 갖출 수 있습니다.' : rentRisk === 'caution' ? '마진 구조가 다소 타이트합니다. 추가 객단가 상승 전략이 필수적입니다.' : '해당 입지 월세로는 구조적 이익 창출이 불가능에 가깝습니다. 계약 보류를 강력 권고합니다.'}`} />
-            </div>
-
-            {/* 지표 3: 폐업 리스크 조기경보 */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-[24px] border border-white shadow-[0_8px_40px_rgb(0,0,0,0.06)] p-6 group">
-              <h3 className="text-[17px] font-black text-slate-800 flex items-center gap-2.5 mb-7 tracking-tight">
-                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-rose-100 to-red-100 flex items-center justify-center border border-white shadow-inner">
-                  <ShieldAlert className="w-4 h-4 text-rose-600" />
-                </div>
-                사업단절(폐업) 리스크 진단
-              </h3>
-              
-              <div className="flex items-center gap-5 mb-7 bg-slate-50/80 rounded-[20px] p-5 border border-slate-100 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-2 h-full" style={{ background: closureScore >= 60 ? '#f43f5e' : closureScore >= 30 ? '#f59e0b' : '#10b981' }} />
-                <div className="text-center w-[80px] shrink-0">
-                  <div className="text-[48px] font-black leading-none tracking-tighter drop-shadow-sm" style={{ color: closureScore >= 60 ? '#E11D48' : closureScore >= 30 ? '#D97706' : '#059669' }}>{closureScore}</div>
-                  <div className="text-[9px] text-slate-400 font-black mt-2 tracking-widest uppercase">Risk Point</div>
-                </div>
-                <div className="flex-1 pr-4">
-                  <div className="w-full bg-slate-200/60 rounded-full h-3.5 overflow-hidden shadow-inner mb-3.5 border border-slate-300/30">
-                    <div 
-                      className="h-full rounded-full transition-all duration-1000 ease-out relative" 
-                      style={{ width: `${closureScore}%`, background: 'linear-gradient(90deg, #10B981 0%, #F59E0B 50%, #EF4444 100%)' }} 
-                    >
-                      <div className="absolute inset-0 bg-white/20" />
+            {/* P1: 생존 성적표 (핵심 팩트) */}
+            <div className="bg-white rounded-2xl shadow-lg p-5 border border-slate-100">
+              <h3 className="text-[17px] font-extrabold text-slate-800 mb-4 flex items-center gap-2">🏆 이 골목 생존 성적표</h3>
+              {aiStats ? (
+                <>
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="bg-amber-50 rounded-xl p-3 text-center border border-amber-100">
+                      <div className="text-[28px] font-extrabold text-amber-600">{aiStats.survivalRate3y}%</div>
+                      <div className="text-[11px] font-bold text-amber-500">3년 생존율</div>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
+                      <div className="text-[28px] font-extrabold text-slate-700">{aiStats.sameCategory}</div>
+                      <div className="text-[11px] font-bold text-slate-400">동종업종</div>
+                    </div>
+                    <div className="bg-blue-50 rounded-xl p-3 text-center border border-blue-100">
+                      <div className="text-[28px] font-extrabold text-blue-600">{Math.floor((aiStats.avgBusinessMonths || 24) / 12)}년 {(aiStats.avgBusinessMonths || 24) % 12}월</div>
+                      <div className="text-[11px] font-bold text-blue-400">평균 영업기간</div>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <RiskBadge level={closureLevel} />
-                    <span className="text-[11px] font-bold text-slate-400">기준치: 50 미만 정상</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mb-4 text-[13px] font-bold text-slate-700 px-1">위험 상승 주요 트리거 Top 3</div>
-              <div className="grid gap-2.5">
-                {[
-                  { icon: <TrendingDown className="w-4 h-4" />, text: '객단가 낮은 저가 브랜드 출혈 경쟁', pct: 45, color: 'text-rose-600', bg: 'bg-rose-50 border-rose-100' },
-                  { icon: <Store className="w-4 h-4" />, text: '인건비 및 식자재 원가율 상승 압박', pct: 30, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100' },
-                  { icon: <AlertTriangle className="w-4 h-4" />, text: '주 5일 상권 편중으로 잉여 고정비 발생', pct: 25, color: 'text-slate-600', bg: 'bg-slate-50 border-slate-200' },
-                ].map((f, i) => (
-                  <div key={i} className={`flex items-center gap-3 bg-white border shadow-sm rounded-xl p-3 px-4 hover:shadow-md transition-shadow relative overflow-hidden group/item ${f.bg} border-opacity-50`}>
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-current opacity-20" style={{ color: f.color.replace('text-', 'bg-') }} />
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-white shadow-sm border border-slate-100`}>
-                      <span className={f.color}>{f.icon}</span>
+                  <div className="flex gap-3">
+                    <div className="flex-1 bg-emerald-50 rounded-lg px-3 py-2 text-center border border-emerald-100">
+                      <span className="text-sm font-bold text-emerald-600">+{aiStats.recentOpenings || 0}개</span>
+                      <span className="text-xs text-emerald-400 ml-1">최근1년 개업</span>
                     </div>
-                    <span className="text-[13px] font-bold text-slate-700 flex-1 tracking-tight leading-snug">{f.text}</span>
-                    <div className="flex flex-col items-center justify-center">
-                      <span className="text-[16px] font-black text-slate-800 leading-none tabular-nums">{f.pct}<span className="text-[11px] text-slate-400 font-bold ml-0.5">%</span></span>
+                    <div className="flex-1 bg-red-50 rounded-lg px-3 py-2 text-center border border-red-100">
+                      <span className="text-sm font-bold text-red-600">-{aiStats.recentClosures || 0}개</span>
+                      <span className="text-xs text-red-400 ml-1">최근1년 폐업</span>
                     </div>
                   </div>
-                ))}
-              </div>
-              <AIInsight text="해당 지역 동종업종의 3년 내 폐업률 트렌드는 평균을 상회합니다. '저가 브랜드 출혈경쟁'이 주요 폐업 요인으로 지목되므로, 메뉴 객단가를 높이는 시그니처 전략이 없다면 리스크가 높습니다." />
+                  <AIInsight text={`이 상권의 동종업종 3년 생존율은 ${aiStats.survivalRate3y}%입니다. ${aiStats.survivalRate3y < 40 ? '전국 평균(42%)보다 낮아 신규 진입 시 각별한 주의가 필요합니다.' : '평균 수준이지만 경쟁 현황을 반드시 확인하세요.'}`} />
+                </>
+              ) : (
+                <div className="text-center py-6 text-slate-400">잠금 해제 후 데이터 로딩 중...</div>
+              )}
             </div>
-          </div>
-        )}
 
-        {/* ===== AI 종합 분석 + 경쟁 매장 리스트 (Paid, AI 응답 후) ===== */}
-        {isUnlocked && (
-          <>
-            {/* 경쟁 매장 전수 리스트 */}
+            {/* P2: 경쟁 매장 전수 리스트 */}
             {aiCompetitors.length > 0 && (
-              <div className="bg-white/80 backdrop-blur-xl rounded-[24px] border border-white shadow-[0_8px_40px_rgb(0,0,0,0.04)] p-6">
-                <h3 className="text-[17px] font-black text-slate-800 mb-4 flex items-center gap-2">
-                  <span className="text-lg">🏪</span> 주변 경쟁 매장 전수 리스트
-                </h3>
-                <div className="space-y-2">
+              <div className="bg-white rounded-2xl shadow-lg p-5 border border-slate-100">
+                <h3 className="text-[17px] font-extrabold text-slate-800 mb-4 flex items-center gap-2">🏪 경쟁 매장 전수 조사</h3>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
                   {aiCompetitors.map((c, i) => (
                     <div key={i} className="flex items-center gap-3 bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-100">
-                      <span className="text-xs font-bold text-slate-400 w-5">{i + 1}</span>
+                      <span className="text-xs font-extrabold text-slate-400 w-5">{i + 1}</span>
                       <div className="flex-1 min-w-0">
                         <div className="font-bold text-sm text-slate-800 truncate">{c.name}</div>
-                        <div className="text-xs text-slate-400">
-                          {c.area ? `${c.area}㎡` : '-'} · {c.openedAt ? c.openedAt.substring(0, 7) + ' 개업' : '업력미상'}
-                        </div>
+                        <div className="text-xs text-slate-400">{c.area ? `${c.area}㎡` : '면적미상'} · {c.openedAt ? c.openedAt.substring(0, 7) + ' 개업' : '업력미상'}</div>
                       </div>
-                      {c.isFranchise && (
-                        <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full shrink-0">프랜차이즈</span>
-                      )}
+                      {c.isFranchise && <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full shrink-0">FC</span>}
                     </div>
                   ))}
                 </div>
                 {aiStats && (
-                  <div className="mt-4 flex gap-3">
-                    <div className="flex-1 bg-blue-50 rounded-xl p-3 text-center">
-                      <div className="text-[22px] font-extrabold text-blue-600">{aiStats.sameCategory}</div>
-                      <div className="text-[11px] font-bold text-blue-400">동종업종</div>
-                    </div>
-                    <div className="flex-1 bg-slate-50 rounded-xl p-3 text-center">
-                      <div className="text-[22px] font-extrabold text-slate-700">{aiStats.franchiseRatio}%</div>
-                      <div className="text-[11px] font-bold text-slate-400">프랜차이즈</div>
-                    </div>
-                    <div className="flex-1 bg-amber-50 rounded-xl p-3 text-center">
-                      <div className="text-[22px] font-extrabold text-amber-600">{aiStats.survivalRate3y}%</div>
-                      <div className="text-[11px] font-bold text-amber-400">3년 생존율</div>
-                    </div>
-                  </div>
+                  <AIInsight text={`프랜차이즈 비율 ${aiStats.franchiseRatio}%. ${aiStats.franchiseRatio > 50 ? '프랜차이즈가 지배하는 상권으로, 개인 매장은 강력한 차별화가 필수입니다.' : '개인 매장 비율이 높아 콘셉트 경쟁력으로 승부할 수 있는 구조입니다.'}`} />
                 )}
               </div>
             )}
 
-            {/* AI 종합 의견서 */}
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[24px] shadow-xl p-6 text-white overflow-visible">
-              <h3 className="text-[17px] font-black mb-4 flex items-center gap-2">
-                <span className="text-lg">🤖</span> AI 종합 분석 의견서
-              </h3>
+            {/* P3: 매출 추정 (솔직하게) */}
+            <div className="bg-white rounded-2xl shadow-lg p-5 border border-slate-100">
+              <h3 className="text-[17px] font-extrabold text-slate-800 mb-1 flex items-center gap-2">💰 AI 추정 월매출</h3>
+              <p className="text-[11px] text-slate-400 mb-4">공공데이터 기반 추정치 · 실제 카드 결제 데이터가 아닙니다</p>
+              {aiStats?.estimatedRevenue ? (
+                <>
+                  <div className="flex items-end gap-2 mb-3">
+                    <div className="text-center flex-1 bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <div className="text-[20px] font-bold text-slate-500">{(aiStats.estimatedRevenue.min / 10000).toFixed(0)}만</div>
+                      <div className="text-[10px] text-slate-400">보수적</div>
+                    </div>
+                    <div className="text-center flex-1 bg-blue-50 rounded-xl p-3 border border-blue-200">
+                      <div className="text-[28px] font-extrabold text-blue-600">{(aiStats.estimatedRevenue.median / 10000).toFixed(0)}만</div>
+                      <div className="text-[10px] font-bold text-blue-500">기준 추정</div>
+                    </div>
+                    <div className="text-center flex-1 bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <div className="text-[20px] font-bold text-slate-500">{(aiStats.estimatedRevenue.max / 10000).toFixed(0)}만</div>
+                      <div className="text-[10px] text-slate-400">낙관적</div>
+                    </div>
+                  </div>
+                  <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+                    <p className="text-[12px] text-amber-700 leading-relaxed">⚠️ 이 수치는 허프 확률 모델 기반 추정치이며, 실제 카드 결제 데이터가 아닙니다. 참고용으로만 활용하세요.</p>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4 text-slate-400 text-sm">매출 데이터 로딩 중...</div>
+              )}
+            </div>
+
+            {/* P4: BEP 시뮬레이터 */}
+            <div className="bg-white rounded-2xl shadow-lg p-5 border border-slate-100">
+              <h3 className="text-[17px] font-extrabold text-slate-800 mb-4 flex items-center gap-2">🧮 임대료 감당력</h3>
+              <div className="mb-4">
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm font-medium text-slate-600">월세</span>
+                  <span className="text-lg font-extrabold text-slate-800">{rent[0]}만원</span>
+                </div>
+                <Slider value={rent} onValueChange={setRent} min={50} max={500} step={10} />
+                <div className="flex justify-between text-[11px] text-slate-400 mt-1"><span>50만</span><span>500만</span></div>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
+                <p className="text-xs text-slate-500 mb-1">손익분기점 일일 판매량</p>
+                <div className="flex items-center justify-center gap-2">
+                  <Coffee className="w-5 h-5 text-amber-600" />
+                  <span className="text-[36px] font-extrabold text-slate-800">{Math.ceil(rent[0] * 10000 / 4500)}</span>
+                  <span className="text-base text-slate-500">잔/일</span>
+                </div>
+                <div className="mt-2">
+                  <RiskBadge level={rent[0] > 300 ? 'danger' : rent[0] > 180 ? 'caution' : 'safe'} />
+                </div>
+              </div>
+            </div>
+
+            {/* P5: 폐업 리스크 */}
+            <div className="bg-white rounded-2xl shadow-lg p-5 border border-slate-100">
+              <h3 className="text-[17px] font-extrabold text-slate-800 mb-4 flex items-center gap-2">⚠️ 폐업 리스크</h3>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="text-center">
+                  <div className="text-[36px] font-extrabold" style={{ color: closureScore >= 60 ? '#DC2626' : closureScore >= 30 ? '#F59E0B' : '#16A34A' }}>{closureScore}</div>
+                  <div className="text-xs text-slate-400">/ 100</div>
+                </div>
+                <div className="flex-1">
+                  <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                    <div className="h-3 transition-all" style={{ width: `${closureScore}%`, background: 'linear-gradient(90deg, #16A34A 0%, #F59E0B 50%, #DC2626 100%)' }} />
+                  </div>
+                  <div className="mt-2"><RiskBadge level={closureLevel} /></div>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                {[
+                  { icon: <TrendingDown className="w-4 h-4" />, text: '경쟁 급증', pct: 45 },
+                  { icon: <Store className="w-4 h-4" />, text: '임대료 상승', pct: 30 },
+                  { icon: <AlertTriangle className="w-4 h-4" />, text: '유동 감소', pct: 25 },
+                ].map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                    <span className="text-slate-400">{f.icon}</span>
+                    <span className="text-sm text-slate-700 flex-1">{f.text}</span>
+                    <span className="text-sm font-bold text-slate-500">{f.pct}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* P6: AI 종합 의견서 (마지막) */}
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl p-6 text-white overflow-visible">
+              <h3 className="text-[17px] font-extrabold mb-4 flex items-center gap-2">🤖 AI 종합 분석 의견서</h3>
               {aiLoading ? (
                 <div className="flex flex-col items-center py-8 gap-3">
-                  <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
-                  <p className="text-blue-200 text-sm font-medium">AI가 142만개 점포 데이터를 분석하고 있습니다...</p>
+                  <div className="w-8 h-8 border-[3px] border-white border-t-transparent rounded-full animate-spin" />
+                  <p className="text-blue-200 text-sm">AI가 142만개 점포 데이터를 분석 중...</p>
                 </div>
               ) : aiAnalysis ? (
                 <div className="bg-white/10 backdrop-blur rounded-xl p-5 overflow-visible">
                   <ReactMarkdown
                     components={{
-                      h1: ({children}) => <h2 className="text-lg font-extrabold text-white mt-4 mb-2 first:mt-0">{children}</h2>,
-                      h2: ({children}) => <h3 className="text-base font-extrabold text-white mt-4 mb-2 first:mt-0">{children}</h3>,
-                      h3: ({children}) => <h4 className="text-sm font-bold text-blue-200 mt-3 mb-1">{children}</h4>,
                       p: ({children}) => <p className="text-[14px] leading-[1.8] text-blue-100 mb-3 last:mb-0">{children}</p>,
                       strong: ({children}) => <strong className="font-extrabold text-white">{children}</strong>,
+                      ol: ({children}) => <ol className="space-y-2 mb-3">{children}</ol>,
                       ul: ({children}) => <ul className="space-y-1.5 mb-3">{children}</ul>,
-                      ol: ({children}) => <ol className="space-y-2 mb-3 list-none">{children}</ol>,
                       li: ({children}) => <li className="text-[14px] leading-[1.7] text-blue-100 flex gap-2"><span className="text-blue-300 shrink-0">•</span><span>{children}</span></li>,
                     }}
                   >
@@ -559,13 +512,11 @@ export default function ReportPage() {
                   </ReactMarkdown>
                 </div>
               ) : (
-                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-                  <p className="text-blue-200 text-sm">AI 분석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
-                </div>
+                <p className="text-blue-200 text-sm text-center py-4">AI 분석을 불러오는 중 문제가 발생했습니다.</p>
               )}
-              <p className="text-[10px] text-blue-300 mt-3 text-center">Powered by Gemini AI · 공공데이터 기반 참고용 분석</p>
+              <p className="text-[10px] text-blue-300 mt-3 text-center">Powered by Gemini AI · 공공데이터 기반 참고용</p>
             </div>
-          </>
+          </div>
         )}
 
         {/* ===== Footer Actions ===== */}

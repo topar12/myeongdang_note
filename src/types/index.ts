@@ -242,7 +242,8 @@ export interface GenerateReportRequest {
 export interface GenerateReportResponse {
   reportId: string;
   freeData: ReportFreeData;
-  isPaid: false;
+  paidData: ReportPaidData;
+  isPaid: boolean;
 }
 
 // ── 허프 모델 ──
