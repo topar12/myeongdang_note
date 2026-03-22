@@ -139,19 +139,10 @@ export default function ReportPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 pb-32">
-      {/* 상단 배너 */}
-      <div className="fixed top-0 left-0 right-0 z-50 p-2 pointer-events-none">
-        <div className="max-w-md mx-auto bg-slate-900/90 backdrop-blur-md rounded-full px-5 py-2.5 shadow-lg border border-white/10 flex items-center justify-between pointer-events-auto">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2"><span className="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-75" /><span className="relative rounded-full h-2 w-2 bg-emerald-500" /></span>
-            <span className="text-[11px] font-bold text-slate-200 tracking-wider">LIVE REPORT</span>
-          </div>
-          <span className="text-[10px] text-slate-400">Myeongdang AI®</span>
-        </div>
-      </div>
+      {/* 공통 헤더는 layout.tsx의 MobileHeader에서 렌더링 */}
 
       {/* Hero */}
-      <section className="relative pt-24 pb-12 px-5 overflow-hidden rounded-b-[40px]">
+      <section className="relative pt-8 pb-12 px-5 overflow-hidden rounded-b-[40px]">
         <div className="absolute inset-0 bg-[#0B1120]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(67,56,202,0.4),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(59,130,246,0.3),transparent_50%)]" />
         <div className="relative z-20 max-w-lg mx-auto">
