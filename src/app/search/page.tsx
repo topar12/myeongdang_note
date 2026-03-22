@@ -264,12 +264,12 @@ function SearchContent() {
       <div className="absolute inset-0">
         <div ref={mapRef} className="w-full h-full" />
 
-        {/* 검색바 오버레이 */}
-        <div className="absolute top-3 left-3 right-3 z-10">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+        {/* 검색바 + 현위치 버튼 */}
+        <div className="absolute top-3 left-3 right-3 z-10 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
-              className="pl-10 pr-4 h-12 text-base bg-white/95 backdrop-blur rounded-xl shadow-lg border-0"
+              className="pl-9 pr-3 h-11 text-sm bg-white/95 backdrop-blur rounded-xl shadow-lg border-0"
               placeholder="주소 또는 장소 검색"
               value={searchQuery}
               onChange={(e) => handleSearchInput(e.target.value)}
@@ -289,17 +289,14 @@ function SearchContent() {
               </div>
             )}
           </div>
+          {/* 현위치 버튼 — 검색바 옆 */}
+          <button onClick={handleMyLocation} disabled={locating}
+            className="w-11 h-11 bg-white/95 backdrop-blur rounded-xl shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-95 transition disabled:opacity-50 shrink-0">
+            {locating ? <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <Navigation className="h-4 w-4 text-blue-600" />}
+          </button>
         </div>
 
       </div>
-
-      {/* 현재 위치 버튼 — 바텀 시트 위, 우측 */}
-      <button onClick={handleMyLocation} disabled={locating}
-        className={`absolute right-4 z-30 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-95 transition disabled:opacity-50 border border-slate-100 ${panelOpen ? 'bottom-[260px]' : 'bottom-[80px]'}`}
-        style={{ transition: 'bottom 0.3s ease-out' }}
-      >
-        {locating ? <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <Navigation className="h-5 w-5 text-blue-600" />}
-      </button>
 
       {/* 하단 플로팅 카드 — 지도 위에 떠있음 */}
       <div className={`absolute bottom-0 left-0 right-0 z-20 transition-all duration-300 ease-out ${panelOpen ? 'translate-y-0' : 'translate-y-[calc(100%-64px)]'}`}>
