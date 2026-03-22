@@ -71,8 +71,8 @@ export default function ReportPage() {
   const [rent, setRent] = useState([200]);
   const [loading, setLoading] = useState(true);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
-  const [aiStats, setAiStats] = useState<any>(null);
-  const [aiCompetitors, setAiCompetitors] = useState<any[]>([]);
+  const [aiStats, setAiStats] = useState<Record<string, number> | null>(null);
+  const [aiCompetitors, setAiCompetitors] = useState<Array<{ name: string; area: number | null; openedAt: string | null; isFranchise: boolean }>>([]);
   const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
@@ -90,8 +90,8 @@ export default function ReportPage() {
       setAiLoading(true);
       try {
         const free = reportData.freeData;
-        const lat = (reportData as any).lat || 36.3525;
-        const lng = (reportData as any).lng || 127.3858;
+        const lat = (reportData as ReportData & { lat?: number }).lat || 36.3525;
+        const lng = (reportData as ReportData & { lng?: number }).lng || 127.3858;
         const res = await fetch('/api/report/ai-analysis', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -509,7 +509,7 @@ export default function ReportPage() {
                   <span className="text-lg">🏪</span> 주변 경쟁 매장 전수 리스트
                 </h3>
                 <div className="space-y-2">
-                  {aiCompetitors.map((c: any, i: number) => (
+                  {aiCompetitors.map((c, i) => (
                     <div key={i} className="flex items-center gap-3 bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-100">
                       <span className="text-xs font-bold text-slate-400 w-5">{i + 1}</span>
                       <div className="flex-1 min-w-0">

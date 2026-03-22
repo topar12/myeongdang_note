@@ -273,13 +273,16 @@ function SearchContent() {
 
         localStorage.setItem('lastReport', JSON.stringify({
           reportId, address: finalAddress, businessCategory: finalCategory,
+          lat, lng,
           freeData: reportData.freeData || null,
         }));
         setTimeout(() => router.push(`/report/${reportId}`), 4000);
       } catch {
         localStorage.setItem('lastReport', JSON.stringify({
           reportId: 'demo', address: address || '분석 주소',
-          businessCategory: selectedCategory || '카페', freeData: null,
+          businessCategory: selectedCategory || '카페',
+          lat: coordinates?.lat || 36.3525, lng: coordinates?.lng || 127.3858,
+          freeData: null,
         }));
         setTimeout(() => router.push('/report/demo'), 4000);
       }
