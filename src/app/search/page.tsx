@@ -388,18 +388,48 @@ function SearchContent() {
               <h2 className="text-2xl font-bold mb-1 text-slate-900">어떤 업종이<br />궁금하세요?</h2>
               <p className="text-muted-foreground text-sm">{address} 상권을 분석합니다.</p>
             </div>
-            <div className="-mx-4">
-              <CategorySwiper onSelect={(id) => setSelectedCategory(id)} />
-            </div>
-            <div className="mt-6">
-              <span className="text-sm font-bold text-slate-600 px-1">기타 업종 직접 입력</span>
-              <input
-                type="text"
-                placeholder="예: 필라테스, 무인 아이스크림"
-                className="w-full h-14 px-4 mt-2 rounded-xl border-2 border-border focus:border-trust-blue focus:outline-none text-base"
-                onChange={(e) => e.target.value && setSelectedCategory(e.target.value)}
-              />
-            </div>
+            <select
+              value={selectedCategory || ''}
+              onChange={(e) => setSelectedCategory(e.target.value || null)}
+              className="w-full h-14 px-4 rounded-xl border-2 border-slate-200 bg-white text-base font-bold text-slate-800 focus:border-trust-blue focus:outline-none appearance-none cursor-pointer"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center' }}
+            >
+              <option value="">업종을 선택하세요</option>
+              <optgroup label="음식">
+                <option value="카페">☕ 카페 / 커피숍</option>
+                <option value="일반음식점">🍽 일반 음식점</option>
+                <option value="제과점">🍰 베이커리 / 제과점</option>
+                <option value="휴게음식점">🧁 디저트 / 휴게음식점</option>
+                <option value="단란주점">🍺 호프 / 주점</option>
+              </optgroup>
+              <optgroup label="생활">
+                <option value="미용업">💇 미용실 / 네일</option>
+                <option value="세탁업">👔 세탁소</option>
+                <option value="체력단련장">💪 헬스장 / 피트니스</option>
+                <option value="목욕장">🧖 사우나 / 찜질방</option>
+              </optgroup>
+              <optgroup label="건강">
+                <option value="약국">💊 약국</option>
+                <option value="의원">🏥 의원 / 클리닉</option>
+                <option value="병원">🏨 병원</option>
+                <option value="안경업">👓 안경원</option>
+              </optgroup>
+              <optgroup label="문화/여가">
+                <option value="PC방">🖥 PC방</option>
+                <option value="노래연습장">🎤 노래방</option>
+                <option value="당구장">🎱 당구장</option>
+                <option value="숙박업">🏨 숙박 / 모텔</option>
+              </optgroup>
+              <optgroup label="반려동물">
+                <option value="동물병원">🐕 동물병원</option>
+                <option value="동물미용">🐩 애견미용</option>
+              </optgroup>
+              <optgroup label="기타">
+                <option value="부동산">🏠 부동산 중개</option>
+                <option value="편의점">🏪 편의점</option>
+                <option value="이용업">💈 이용원 (바버샵)</option>
+              </optgroup>
+            </select>
             <div className="mt-auto pt-6 pb-4 flex gap-3">
               <Button variant="outline" className="w-1/3 h-14 text-lg font-bold rounded-xl" onClick={() => setCurrentStep(1)}>이전</Button>
               <Button
