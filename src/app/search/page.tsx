@@ -82,7 +82,13 @@ function SearchContent() {
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (pos) => { const {latitude: lat, longitude: lng} = pos.coords; (map as Record<string, unknown>).setCenter = ((map as Record<string, (arg: unknown) => void>).setCenter); (map as Record<string, (arg: unknown) => void>).setCenter(new LatLng(lat, lng)); (map as Record<string, (arg: unknown) => void>).setLevel(4 as unknown); placeMarker(lat, lng); reverseGeocode(lat, lng); },
+          (pos) => {
+            const { latitude: lat, longitude: lng } = pos.coords;
+            (map as Record<string, (arg: unknown) => void>).setCenter(new LatLng(lat, lng));
+            (map as Record<string, (arg: unknown) => void>).setLevel(4 as unknown);
+            placeMarker(lat, lng);
+            reverseGeocode(lat, lng);
+          },
           () => { placeMarker(defaultLat, defaultLng); reverseGeocode(defaultLat, defaultLng); },
           { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
         );
@@ -285,12 +291,15 @@ function SearchContent() {
           </div>
         </div>
 
-        {/* 현재 위치 버튼 */}
-        <button onClick={handleMyLocation} disabled={locating}
-          className="absolute bottom-3 right-3 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-95 transition disabled:opacity-50">
-          {locating ? <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <Navigation className="h-4 w-4 text-blue-600" />}
-        </button>
       </div>
+
+      {/* 현재 위치 버튼 — 바텀 시트 위, 우측 */}
+      <button onClick={handleMyLocation} disabled={locating}
+        className={`absolute right-4 z-30 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-95 transition disabled:opacity-50 border border-slate-100 ${panelOpen ? 'bottom-[260px]' : 'bottom-[80px]'}`}
+        style={{ transition: 'bottom 0.3s ease-out' }}
+      >
+        {locating ? <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <Navigation className="h-5 w-5 text-blue-600" />}
+      </button>
 
       {/* 하단 플로팅 카드 — 지도 위에 떠있음 */}
       <div className={`absolute bottom-0 left-0 right-0 z-20 transition-all duration-300 ease-out ${panelOpen ? 'translate-y-0' : 'translate-y-[calc(100%-64px)]'}`}>
