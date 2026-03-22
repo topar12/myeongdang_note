@@ -99,7 +99,21 @@ export default function ReportPage() {
   // 데이터 추출
   const free = reportData?.freeData;
   const address = reportData?.address || '분석 주소';
-  const category = reportData?.businessCategory || '업종';
+  const rawCategory = reportData?.businessCategory || '업종';
+
+  // 영어/코드 → 한국어 매핑
+  const CATEGORY_MAP: Record<string, string> = {
+    'cafe': '카페', 'coffee': '카페', 'restaurant': '음식점', 'general_restaurants': '음식점',
+    'bakery': '베이커리', 'bakeries': '제과점', 'beauty': '미용실', 'beauty_salons': '미용업',
+    'laundry': '세탁소', 'laundries': '세탁업', 'pharmacy': '약국', 'pharmacies': '약국',
+    'clinic': '의원', 'clinics': '의원', 'hospital': '병원', 'hospitals': '병원',
+    'fitness': '헬스장', 'fitness_centers': '체력단련장', 'pc_bangs': 'PC방',
+    'karaoke': '노래방', 'karaoke_rooms': '노래연습장', 'lodgings': '숙박업',
+    'barber_shops': '이용업', 'optical_shops': '안경업', 'public_baths': '목욕장',
+    '일반음식점': '음식점', '휴게음식점': '카페/디저트', '체력단련장': '헬스장',
+    '노래연습장': '노래방', '단란주점': '호프/주점', '동물병원': '동물병원', '동물미용': '애견미용',
+  };
+  const category = CATEGORY_MAP[rawCategory] || rawCategory;
   const score = free?.temperature?.score ?? 65;
   const trend = free?.temperature?.trend ?? 'stable';
   const pct = free?.temperature?.percentile ?? 50;
