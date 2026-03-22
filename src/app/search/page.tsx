@@ -51,6 +51,12 @@ function SearchContent() {
   const [locating, setLocating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [nearbyCount, setNearbyCount] = useState<number | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+
+  // 위치 선택되면 패널 자동 열기
+  useEffect(() => {
+    if (coordinates && address) setPanelOpen(true);
+  }, [coordinates, address]);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<unknown>(null);
@@ -250,12 +256,7 @@ function SearchContent() {
 
   const canAnalyze = coordinates && selectedCategory;
 
-  const [panelOpen, setPanelOpen] = useState(false);
-
-  // 위치 선택되면 패널 자동 열기
-  useEffect(() => {
-    if (coordinates && address) setPanelOpen(true);
-  }, [coordinates, address]);
+  // panelOpen은 상단에서 선언됨
 
   return (
     <main className="relative h-screen overflow-hidden bg-white">
