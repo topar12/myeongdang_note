@@ -15,7 +15,7 @@ const STEPS = [
   { id: 3, label: '리포트 생성' },
 ];
 
-const RADIUS_OPTIONS = [300, 500, 1000];
+const FIXED_RADIUS = 500; // 반경 500m 고정
 
 function SearchContent() {
   const router = useRouter();
@@ -24,7 +24,7 @@ function SearchContent() {
   const [currentStep, setCurrentStep] = useState(1);
   const [address, setAddress] = useState('');
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
-  const [radius, setRadius] = useState(500);
+  const radius = FIXED_RADIUS;
   const [nearbyCount, setNearbyCount] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -358,24 +358,10 @@ function SearchContent() {
                 </span>
               </div>
 
-              {/* 반경 선택 */}
+              {/* 반경 500m 고정 */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500 shrink-0">반경</span>
-                <div className="flex gap-2 flex-1">
-                  {RADIUS_OPTIONS.map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => setRadius(r)}
-                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
-                        radius === r
-                          ? 'bg-trust-blue text-white shadow-sm'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      {r >= 1000 ? `${r / 1000}km` : `${r}m`}
-                    </button>
-                  ))}
-                </div>
+                <span className="text-sm text-slate-500 shrink-0">반경 500m 분석</span>
+                <div className="flex-1" />
                 {nearbyCount !== null && (
                   <span className="text-sm font-bold text-trust-blue shrink-0">
                     {nearbyCount.toLocaleString()}개
