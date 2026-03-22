@@ -39,7 +39,7 @@ const CATEGORIES = [
 
 function SearchContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  
 
   const [address, setAddress] = useState('');
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
@@ -47,7 +47,7 @@ function SearchContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{ addressName: string; lat: number; lng: number; placeName?: string; roadAddressName?: string }>>([]);
   const [showResults, setShowResults] = useState(false);
-  const [mapReady, setMapReady] = useState(false);
+  const [, setMapReady] = useState(false);
   const [locating, setLocating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [nearbyCount, setNearbyCount] = useState<number | null>(null);
@@ -67,7 +67,7 @@ function SearchContent() {
 
   // 카카오맵 초기화
   useEffect(() => {
-    const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown> | undefined;
+    const kakao = (window as unknown as Record<string, unknown>).kakao as Record<string, unknown> | undefined;
     if (!kakao?.maps) return;
     const maps = kakao.maps as Record<string, unknown>;
     (maps.load as (cb: () => void) => void)(() => {
@@ -104,7 +104,7 @@ function SearchContent() {
   }, []);
 
   const placeMarker = useCallback((lat: number, lng: number) => {
-    const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+    const kakao = (window as unknown as Record<string, unknown>).kakao as Record<string, unknown>;
     const maps = kakao.maps as Record<string, unknown>;
     if (!mapInstanceRef.current) return;
     setCoordinates({ lat, lng });
@@ -127,7 +127,7 @@ function SearchContent() {
   }, []);
 
   const updateCircle = useCallback((lat: number, lng: number) => {
-    const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+    const kakao = (window as unknown as Record<string, unknown>).kakao as Record<string, unknown>;
     const maps = kakao.maps as Record<string, unknown>;
     if (!mapInstanceRef.current) return;
     if (circleRef.current) ((circleRef.current as Record<string, (arg: unknown) => void>).setMap)(null);
@@ -141,7 +141,7 @@ function SearchContent() {
   }, []);
 
   const reverseGeocode = useCallback((lat: number, lng: number) => {
-    const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+    const kakao = (window as unknown as Record<string, unknown>).kakao as Record<string, unknown>;
     const maps = kakao.maps as Record<string, unknown>;
     const services = maps.services as Record<string, unknown>;
     const Geocoder = services.Geocoder as new () => Record<string, (lng: number, lat: number, cb: (result: Array<Record<string, Record<string, string> | null>>, status: string) => void) => void>;
@@ -187,7 +187,7 @@ function SearchContent() {
     setCoordinates({ lat: result.lat, lng: result.lng });
     setShowResults(false);
     if (mapInstanceRef.current) {
-      const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+      const kakao = (window as unknown as Record<string, unknown>).kakao as Record<string, unknown>;
       const maps = kakao.maps as Record<string, unknown>;
       const LatLng = maps.LatLng as new (lat: number, lng: number) => unknown;
       ((mapInstanceRef.current as Record<string, (arg: unknown) => void>).setCenter)(new LatLng(result.lat, result.lng));
@@ -204,7 +204,7 @@ function SearchContent() {
         const { latitude: lat, longitude: lng } = pos.coords;
         setLocating(false);
         if (mapInstanceRef.current) {
-          const kakao = (window as Record<string, unknown>).kakao as Record<string, unknown>;
+          const kakao = (window as unknown as Record<string, unknown>).kakao as Record<string, unknown>;
           const maps = kakao.maps as Record<string, unknown>;
           const LatLng = maps.LatLng as new (lat: number, lng: number) => unknown;
           ((mapInstanceRef.current as Record<string, (arg: unknown) => void>).setCenter)(new LatLng(lat, lng));

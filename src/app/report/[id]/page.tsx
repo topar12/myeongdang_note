@@ -1,13 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { ScoreGauge } from '@/components/report/ScoreGauge';
 import {
-  Lock, Coffee, MapPin, Sparkles, Target, ShieldAlert, Activity,
-  Store, AlertTriangle, TrendingDown, TrendingUp, Users, BarChart3, Clock,
-  ChevronRight, Lightbulb
+  Lock, Coffee, MapPin, Target, ShieldAlert, Activity,
+  Store, Users, BarChart3, Clock, Lightbulb
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -38,10 +35,7 @@ interface AIData {
 
 // ── 유틸 컴포넌트 ──
 const PEAK_EMOJI: Record<string, string> = { '12:00~13:00': '☀️', '18:00~20:00': '🌙', '15:00~17:00': '🎉' };
-const RADAR_DEFAULT = [
-  { subject: '점포 밀집', A: 70, fullMark: 100 }, { subject: '매출 규모', A: 55, fullMark: 100 },
-  { subject: '유동인구', A: 75, fullMark: 100 }, { subject: '경쟁 강도', A: 65, fullMark: 100 }, { subject: '성장성', A: 50, fullMark: 100 },
-];
+// 레이더 차트 데이터는 추후 API에서 제공
 
 function RiskBadge({ level }: { level: string }) {
   const s: Record<string, string> = { safe: 'bg-emerald-50 text-emerald-600 border-emerald-200', caution: 'bg-amber-50 text-amber-600 border-amber-200', danger: 'bg-rose-50 text-rose-600 border-rose-200' };
@@ -72,7 +66,7 @@ function Insight({ text }: { text: string }) {
 
 // ── 메인 ──
 export default function ReportPage() {
-  const router = useRouter();
+  
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [rent, setRent] = useState([200]);

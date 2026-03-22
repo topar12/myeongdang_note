@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ScoreGauge } from '@/components/report/ScoreGauge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Star, MapPin, Search, FileText, ShieldCheck, TrendingDown, Clock, Zap, ChevronRight, BarChart3, Activity, Store, Sparkles } from 'lucide-react';
+import { Star, Search, ShieldCheck, TrendingDown, Clock, ChevronRight, Activity, Store, Sparkles } from 'lucide-react';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -151,7 +151,7 @@ export default function LandingPage() {
               <div className="inline-block px-3 py-1 bg-blue-500/20 text-blue-300 text-[10px] font-black rounded-lg mb-2 border border-blue-500/30 uppercase tracking-widest">Premium Algorithm</div>
               <h3 className="text-[22px] font-black text-white mb-1.5 tracking-tight">AI 통합 리스크 의견서</h3>
               <p className="text-slate-400 font-medium text-sm leading-relaxed max-w-lg">
-                단순 수치 제공을 넘어, 상권 데이터를 종합하여 "이 입지가 안전한지 여부"를 AI가 프로파일링하여 직접 서술해 드립니다.
+                단순 수치 제공을 넘어, 상권 데이터를 종합하여 입지의 안전 여부를 AI가 프로파일링하여 직접 서술해 드립니다.
               </p>
             </div>
           </div>
@@ -256,12 +256,12 @@ export default function LandingPage() {
         
         <div className="grid md:grid-cols-2 gap-5">
           <div className="bg-white p-8 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group hover:border-indigo-100 transition-colors">
-            <div className="absolute top-6 right-6 text-indigo-50 text-[60px] font-serif leading-none opacity-50 select-none group-hover:text-indigo-100 transition-colors">"</div>
+            <div className="absolute top-6 right-6 text-indigo-50 text-[60px] font-serif leading-none opacity-50 select-none group-hover:text-indigo-100 transition-colors">&ldquo;</div>
             <div className="flex gap-1 text-amber-400 mb-5">
               {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}
             </div>
             <p className="font-extrabold text-[16px] text-slate-700 leading-relaxed mb-6 relative z-10">
-              "계약 직전까지 갔던 자리, 명당노트에 돌려봤다가 같은 업종이 1년도 못 버티고 3번 바뀐 걸 알았습니다. 등골이 서늘하더군요. 5천만 원 날릴 뻔한 걸 커피 한잔 값으로 살렸습니다."
+              &quot;계약 직전까지 갔던 자리, 명당노트에 돌려봤다가 같은 업종이 1년도 못 버티고 3번 바뀐 걸 알았습니다. 등골이 서늘하더군요. 5천만 원 날릴 뻔한 걸 커피 한잔 값으로 살렸습니다.&quot;
             </p>
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10"><AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 font-black">박</AvatarFallback></Avatar>
@@ -273,12 +273,12 @@ export default function LandingPage() {
           </div>
 
           <div className="bg-white p-8 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group hover:border-indigo-100 transition-colors">
-            <div className="absolute top-6 right-6 text-indigo-50 text-[60px] font-serif leading-none opacity-50 select-none group-hover:text-indigo-100 transition-colors">"</div>
+            <div className="absolute top-6 right-6 text-indigo-50 text-[60px] font-serif leading-none opacity-50 select-none group-hover:text-indigo-100 transition-colors">&ldquo;</div>
             <div className="flex gap-1 text-amber-400 mb-5">
               {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}
             </div>
             <p className="font-extrabold text-[16px] text-slate-700 leading-relaxed mb-6 relative z-10">
-              "기존 상권 분석 사이트들은 복잡한 표만 줘서 무슨 말인지 몰랐는데, 명당노트는 딱 '위험하다, 안전하다'를 찍어주고 임대료 감당 시뮬레이션까지 돌아가서 정말 직관적입니다."
+              &quot;기존 상권 분석 사이트들은 복잡한 표만 줘서 무슨 말인지 몰랐는데, 명당노트는 딱 &apos;위험하다, 안전하다&apos;를 찍어주고 임대료 감당 시뮬레이션까지 돌아가서 정말 직관적입니다.&quot;
             </p>
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10"><AvatarFallback className="bg-gradient-to-br from-indigo-100 to-indigo-200 text-indigo-700 font-black">최</AvatarFallback></Avatar>

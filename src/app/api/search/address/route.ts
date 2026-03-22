@@ -6,7 +6,7 @@ import {
   handleApiError,
   jsonOk,
   parseSearchParams,
-  requireAuthenticatedUser,
+
 } from "../../_lib/api-utils";
 
 const addressSearchSchema = z.object({

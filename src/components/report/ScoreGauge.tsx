@@ -19,7 +19,7 @@ export function ScoreGauge({ score, label, trend, size = 200 }: ScoreGaugeProps)
   // 반원 둘레 (180도)
   const circumference = Math.PI * radius;
   const fillLength = (clampedScore / 100) * circumference;
-  const emptyLength = circumference - fillLength;
+  
 
   // 색상
   const getColor = (s: number) => {

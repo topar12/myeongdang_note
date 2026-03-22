@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 import { ScoreGauge } from '@/components/report/ScoreGauge';
 import { 
-  AlertTriangle, TrendingDown, Store, Coffee, 
-  MapPin, Sparkles, Target, ShieldAlert, BadgeCheck, Activity
+  Store, Coffee, 
+  MapPin, Sparkles, Target, ShieldAlert, Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
