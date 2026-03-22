@@ -75,29 +75,10 @@ export default function LandingPage() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => {
-                // 데모 데이터 localStorage에 저장 후 리포트 페이지로 이동
-                localStorage.setItem('lastReport', JSON.stringify({
-                  reportId: 'demo',
-                  address: '대전 서구 둔산동 1234',
-                  businessCategory: '카페',
-                  lat: 36.3525,
-                  lng: 127.3858,
-                  freeData: {
-                    temperature: { score: 58, trend: 'up', percentile: 42, insightText: '이 골목은 최근 6개월간 디저트 카페 중심으로 신규 입점이 늘어나며 서서히 활기를 되찾고 있습니다. 다만 기존 카페의 폐업도 동시에 발생하고 있어 업종 교체기에 해당합니다.' },
-                    peakTimes: [
-                      { dayType: 'weekday', timeSlot: '12:00~13:00', relativeScore: 92 },
-                      { dayType: 'weekday', timeSlot: '18:00~20:00', relativeScore: 71 },
-                      { dayType: 'weekend', timeSlot: '15:00~17:00', relativeScore: 58 },
-                    ],
-                    competition: { sameCategory: 47, densityPercentile: 68, insightText: '반경 500m 내 카페 47개로 밀집도가 높은 편입니다. 프랜차이즈 비율은 6%로 낮아 개인 매장 간 경쟁이 주를 이루고 있습니다.' },
-                  },
-                }));
-                router.push('/report/demo');
-              }}
+              onClick={() => router.push('/report/demo')}
               className="w-full sm:w-auto px-8 h-16 text-[17px] font-bold bg-white/5 hover:bg-white/10 text-white border-white/20 rounded-[20px] backdrop-blur-md transition-all hover:scale-[1.03] active:scale-[0.98]"
             >
-              둔산동 카페 데모 보기
+              데모 보고서 보기
             </Button>
           </div>
 
