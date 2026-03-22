@@ -768,18 +768,22 @@ function isSameCategory(store: RadiusStore, businessCategory: string): boolean {
   const targetKey = normalizeBusinessCategoryKey(businessCategory);
   const normalizedTarget = normalizeComparableText(businessCategory);
 
-  return [store.businessCategorySmall, store.businessCategoryMedium, store.businessCategoryLarge]
+  // 1. 카테고리 필드 매칭
+  const categoryMatch = [store.businessCategorySmall, store.businessCategoryMedium, store.businessCategoryLarge]
     .filter((category): category is string => category.length > 0)
     .some((category) => {
       const normalizedCategory = normalizeComparableText(category);
-
-      if (normalizedCategory === normalizedTarget) {
-        return true;
-      }
-
+      if (normalizedCategory === normalizedTarget) return true;
       const categoryKey = normalizeBusinessCategoryKey(category);
       return categoryKey === targetKey && !(categoryKey === "retail" && normalizedCategory !== normalizedTarget);
     });
+
+  if (categoryMatch) return true;
+
+  // 2. 상호명에 업종 키워드 포함 여부 (예: "○○약국" → pharmacy)
+  const storeName = normalizeComparableText(store.storeName);
+  const storeNameKey = normalizeBusinessCategoryKey(store.storeName);
+  return storeNameKey === targetKey && storeNameKey !== "retail";
 }
 
 function calculateOperatedMonths(
