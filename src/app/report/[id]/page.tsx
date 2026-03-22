@@ -191,33 +191,17 @@ export default function ReportPage() {
         {/* ===== PAYWALL — 블러 영역 확실하게 ===== */}
         {!isUnlocked && (
           <>
-            {/* 첫 번째 블러 카드: 생존 성적표 미리보기 */}
-            <div className="relative rounded-[24px] overflow-hidden">
-              <div className="bg-white p-6 pointer-events-none select-none blur-[14px] opacity-40 space-y-3" aria-hidden="true">
-                <div className="text-lg font-bold text-slate-400">🏆 생존 성적표</div>
-                <div className="flex gap-2">
-                  <div className="flex-1 h-20 bg-amber-100 rounded-xl" />
-                  <div className="flex-1 h-20 bg-slate-100 rounded-xl" />
-                  <div className="flex-1 h-20 bg-blue-100 rounded-xl" />
-                </div>
-                <div className="flex gap-2">
-                  <div className="flex-1 h-10 bg-emerald-100 rounded-lg" />
-                  <div className="flex-1 h-10 bg-rose-100 rounded-lg" />
-                </div>
+            {/* 블러 카드: 생존 성적표 + 경쟁 리스트 실루엣 (흰색 오버레이 제거) */}
+            <div className="pointer-events-none select-none space-y-3" aria-hidden="true">
+              <div className="bg-white/80 p-6 rounded-[24px] blur-[12px] opacity-40 space-y-3 shadow-md">
+                <div className="h-5 bg-amber-200 rounded w-1/3" />
+                <div className="flex gap-2"><div className="flex-1 h-16 bg-amber-100 rounded-xl" /><div className="flex-1 h-16 bg-slate-100 rounded-xl" /><div className="flex-1 h-16 bg-blue-100 rounded-xl" /></div>
+                <div className="flex gap-2"><div className="flex-1 h-8 bg-emerald-100 rounded-lg" /><div className="flex-1 h-8 bg-rose-100 rounded-lg" /></div>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-b from-white/90 to-white/70 rounded-[24px] z-10" />
-            </div>
-
-            {/* 두 번째 블러 카드: 경쟁 리스트 미리보기 */}
-            <div className="relative rounded-[24px] overflow-hidden -mt-2">
-              <div className="bg-white p-6 pointer-events-none select-none blur-[14px] opacity-40 space-y-2" aria-hidden="true">
-                <div className="text-lg font-bold text-slate-400">🏪 경쟁 매장 전수 조사</div>
-                <div className="h-10 bg-slate-100 rounded-lg" />
-                <div className="h-10 bg-slate-100 rounded-lg" />
-                <div className="h-10 bg-slate-100 rounded-lg" />
-                <div className="h-10 bg-slate-100 rounded-lg" />
+              <div className="bg-white/80 p-6 rounded-[24px] blur-[12px] opacity-35 space-y-2 shadow-md">
+                <div className="h-5 bg-indigo-200 rounded w-2/5" />
+                <div className="h-9 bg-slate-100 rounded-lg" /><div className="h-9 bg-slate-100 rounded-lg" /><div className="h-9 bg-slate-100 rounded-lg" />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-b from-white/85 to-white/60 rounded-[24px] z-10" />
             </div>
 
             {/* 잠금 해제 CTA 카드 */}
