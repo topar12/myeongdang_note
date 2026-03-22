@@ -359,7 +359,7 @@ function SearchContent() {
         {currentStep === 2 && (
           <div className="flex flex-col h-[calc(100vh-200px)] px-4 animate-in fade-in slide-in-from-right-8 duration-300">
             <div className="mt-4 mb-6">
-              <h2 className="text-2xl font-bold mb-1 text-slate-900">어떤 업종으로<br />창업하실 계획인가요?</h2>
+              <h2 className="text-2xl font-bold mb-1 text-slate-900">어떤 업종이<br />궁금하세요?</h2>
               <p className="text-muted-foreground text-sm">{address} 상권을 분석합니다.</p>
             </div>
             <div className="-mx-4">

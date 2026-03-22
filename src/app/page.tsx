@@ -31,7 +31,7 @@ export default function LandingPage() {
           <span className="text-trust-blue">데이터로 검증</span>하세요
         </h1>
         <p className="text-lg text-muted-foreground mb-10">
-          공인중개사와 예비 창업자를 위한<br />10초 완성 프리미엄 상권 분석
+          내 동네 상권, 데이터로 확인하세요<br />10초 완성 프리미엄 상권 분석
         </p>
 
         {/* 온보딩 분기 */}
@@ -47,8 +47,8 @@ export default function LandingPage() {
                   <User className="w-7 h-7" />
                 </div>
                 <div>
-                  <div className="font-bold text-[19px] text-slate-900">창업 준비 중이에요</div>
-                  <div className="text-[15px] text-slate-500 mt-1">이 자리, 월세 감당 가능할까요?</div>
+                  <div className="font-bold text-[19px] text-slate-900">상권이 궁금해요</div>
+                  <div className="text-[15px] text-slate-500 mt-1">이 동네, 장사가 잘 될까요?</div>
                 </div>
               </button>
 
@@ -70,7 +70,7 @@ export default function LandingPage() {
           <div className="w-full max-w-md bg-white p-6 rounded-2xl shadow-xl border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-6 text-left">
               <span className="inline-block px-3 py-1 bg-trust-blue/10 text-trust-blue text-sm font-bold rounded-full mb-3">
-                {userType === 'founder' ? '👩‍🍳 예비 창업자용' : '💼 공인중개사용'}
+                {userType === 'founder' ? '🔍 상권 분석' : '💼 공인중개사용'}
               </span>
               <h3 className="font-bold text-xl leading-tight text-slate-900">
                 {userType === 'founder' ? '궁금한 상가 주소를 입력하세요' : '분석할 매물 주소를 입력하세요'}
