@@ -74,15 +74,20 @@ function SearchContent() {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             map.setCenter(new kakao.maps.LatLng(lat, lng));
+            map.setLevel(4);
             placeMarker(lat, lng);
             reverseGeocode(lat, lng);
           },
           () => {
-            // 위치 권한 거부 시 기본 위치 사용
+            // 위치 권한 거부 또는 실패 시 기본 위치 사용
             placeMarker(defaultLat, defaultLng);
             reverseGeocode(defaultLat, defaultLng);
-          }
+          },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
         );
+      } else {
+        placeMarker(defaultLat, defaultLng);
+        reverseGeocode(defaultLat, defaultLng);
       }
     });
   }, []);
@@ -206,18 +211,45 @@ function SearchContent() {
     }
   }, [placeMarker]);
 
+  const [locating, setLocating] = useState(false);
+
   const handleMyLocation = useCallback(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition((pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      if (mapInstanceRef.current) {
-        const kakao = (window as any).kakao;
-        mapInstanceRef.current.setCenter(new kakao.maps.LatLng(lat, lng));
-        placeMarker(lat, lng);
-        reverseGeocode(lat, lng);
+    if (!navigator.geolocation) {
+      alert('이 브라우저에서는 위치 서비스를 지원하지 않습니다.');
+      return;
+    }
+
+    setLocating(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setLocating(false);
+        if (mapInstanceRef.current) {
+          const kakao = (window as any).kakao;
+          mapInstanceRef.current.setCenter(new kakao.maps.LatLng(lat, lng));
+          mapInstanceRef.current.setLevel(4);
+          placeMarker(lat, lng);
+          reverseGeocode(lat, lng);
+        }
+      },
+      (err) => {
+        setLocating(false);
+        if (err.code === 1) {
+          alert('위치 권한이 차단되어 있습니다.\n브라우저 설정에서 위치 권한을 허용해주세요.');
+        } else if (err.code === 2) {
+          alert('위치 정보를 가져올 수 없습니다.\nGPS 신호가 약하거나 네트워크를 확인해주세요.');
+        } else {
+          alert('위치 찾기가 시간 초과되었습니다.\n주소 검색을 이용해주세요.');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
       }
-    });
+    );
   }, [placeMarker, reverseGeocode]);
 
   // Step 3: 리포트 생성
@@ -302,9 +334,14 @@ function SearchContent() {
               {/* 현재 위치 버튼 */}
               <button
                 onClick={handleMyLocation}
-                className="absolute bottom-4 right-4 z-10 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-95 transition"
+                disabled={locating}
+                className="absolute bottom-4 right-4 z-10 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-95 transition disabled:opacity-50"
               >
-                <Navigation className="h-5 w-5 text-trust-blue" />
+                {locating ? (
+                  <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Navigation className="h-5 w-5 text-trust-blue" />
+                )}
               </button>
             </div>
 
