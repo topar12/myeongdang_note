@@ -411,7 +411,16 @@ export default function ReportPage() {
                   <span className="text-[13px] font-extrabold text-slate-500 tracking-wide">타겟 월 임대료</span>
                   <span className="text-[24px] font-black text-slate-800 tracking-tight">{monthlyRent}<span className="text-[14px] font-bold text-slate-500 ml-1">만원</span></span>
                 </div>
-                <Slider value={rent} onValueChange={setRent} min={50} max={500} step={10} className="py-2 cursor-pointer" />
+                <Slider
+                  value={rent}
+                  onValueChange={(value) =>
+                    setRent(Array.isArray(value) ? [...value] : [value])
+                  }
+                  min={50}
+                  max={500}
+                  step={10}
+                  className="py-2 cursor-pointer"
+                />
                 <div className="flex justify-between text-[11px] font-bold text-slate-400 mt-3 px-1">
                   <span>50만</span><span>500만</span>
                 </div>

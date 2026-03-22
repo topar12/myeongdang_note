@@ -387,6 +387,110 @@ export async function fetchNearbyStores(
   return rows.map((row, index) => normalizeStoreRow(row, params, index));
 }
 
+async function fetchSameCategoryNearbyStores(
+  adminSupabase: AdminSupabaseClient,
+  nearbyStores: StoreEntity[],
+  params: {
+    lat: number;
+    lng: number;
+    radiusMeters: number;
+    businessCategory: string;
+  },
+): Promise<StoreEntity[]> {
+  const fallbackStores = dedupeStoresById(
+    nearbyStores
+      .filter((store) => isSameCategory(store, params.businessCategory))
+      .sort(
+        (left, right) =>
+          calculateDistanceMeters(left.location, {
+            lat: params.lat,
+            lng: params.lng,
+          }) -
+          calculateDistanceMeters(right.location, {
+            lat: params.lat,
+            lng: params.lng,
+          }),
+      ),
+  );
+
+  try {
+    const rpcStores = await fetchNearbyStores(adminSupabase, {
+      lat: params.lat,
+      lng: params.lng,
+      radiusMeters: params.radiusMeters,
+      category: params.businessCategory,
+    });
+
+    return rpcStores.length > 0 ? dedupeStoresById(rpcStores) : fallbackStores;
+  } catch {
+    return fallbackStores;
+  }
+}
+
+async function fetchRecentClosedCategoryStores(
+  adminSupabase: AdminSupabaseClient,
+  businessCategory: string,
+  params: {
+    lat: number;
+    lng: number;
+    radiusMeters: number;
+  },
+): Promise<StoreEntity[]> {
+  const cutoffDate = formatDateOnly(addDays(new Date(), -730));
+  const categoryColumns = ["business_category_small", "business_category_medium"] as const;
+  const rowMap = new Map<string, NearbyStoreRow>();
+
+  for (const categoryColumn of categoryColumns) {
+    const { data, error } = await adminSupabase
+      .from("stores")
+      .select(STORE_SELECT_COLUMNS)
+      .eq("status", "폐업")
+      .gte("closed_at", cutoffDate)
+      .eq(categoryColumn, businessCategory);
+
+    if (error) {
+      throw new ApiError(
+        500,
+        "최근 폐업 점포 조회에 실패했습니다.",
+        "recent_closed_store_lookup_failed",
+        error,
+      );
+    }
+
+    const rows = Array.isArray(data) ? (data as unknown as NearbyStoreRow[]) : [];
+
+    for (const row of rows) {
+      rowMap.set(row.id, row);
+    }
+  }
+
+  const normalizedStores = [...rowMap.values()]
+    .map((row, index) =>
+      normalizeStoreRow(row, { lat: params.lat, lng: params.lng }, index),
+    )
+    .filter((store) => isSameCategory(store, businessCategory))
+    .filter(
+      (store) =>
+        calculateDistanceMeters(store.location, {
+          lat: params.lat,
+          lng: params.lng,
+        }) <= params.radiusMeters,
+    )
+    .sort(
+      (left, right) =>
+        calculateDistanceMeters(left.location, {
+          lat: params.lat,
+          lng: params.lng,
+        }) -
+        calculateDistanceMeters(right.location, {
+          lat: params.lat,
+          lng: params.lng,
+        }),
+    );
+
+  return dedupeStoresById(normalizedStores);
+}
+
 export async function fetchDistrictStats(
   adminSupabase: AdminSupabaseClient,
   nearbyStores: StoreEntity[],
@@ -462,6 +566,155 @@ function normalizeStoreRow(
     localdataId: row.localdata_id,
     matchConfidence: Number(row.match_confidence ?? 0),
     dataUpdatedAt: row.data_updated_at ?? new Date().toISOString(),
+  };
+}
+
+function buildSurvivalStats(
+  sameCategoryStores: StoreEntity[],
+): ReportFreeData["survivalStats"] {
+  const storesWithOpenedAt = sameCategoryStores.filter((store) => Boolean(store.openedAt));
+  const operatedMonths = storesWithOpenedAt
+    .map((store) => calculateOperatedMonths(store))
+    .filter((value): value is number => value !== null);
+  const survived3yCount = operatedMonths.filter((months) => months >= 36).length;
+
+  return {
+    rate3y:
+      operatedMonths.length > 0
+        ? roundNumber(survived3yCount / operatedMonths.length, 4)
+        : 0,
+    avgMonths:
+      operatedMonths.length > 0
+        ? roundNumber(
+            operatedMonths.reduce((sum, months) => sum + months, 0) / operatedMonths.length,
+            1,
+          )
+        : 0,
+    totalSame: sameCategoryStores.length,
+  };
+}
+
+function buildCompetitorList(
+  sameCategoryStores: StoreEntity[],
+  targetLocation: {
+    lat: number;
+    lng: number;
+  },
+  limit: number,
+): ReportPaidData["competitorList"] {
+  return sameCategoryStores
+    .map((store) => ({
+      name: store.storeName,
+      area: store.floorArea > 0 ? roundNumber(store.floorArea, 1) : null,
+      openedAt: store.openedAt,
+      isFranchise: store.isFranchise,
+      franchiseBrand: store.franchiseBrand,
+      distance: Math.round(calculateDistanceMeters(store.location, targetLocation)),
+    }))
+    .sort((left, right) => left.distance - right.distance)
+    .slice(0, limit);
+}
+
+function buildOpenCloseTimeline(
+  sameCategoryStores: StoreEntity[],
+  recentClosedSameCategoryStores: StoreEntity[],
+): ReportPaidData["openCloseTimeline"] {
+  const cutoffTimestamp = addDays(new Date(), -730).getTime();
+  const timelineStores = dedupeStoresById([
+    ...sameCategoryStores,
+    ...recentClosedSameCategoryStores,
+  ]);
+  const events: ReportPaidData["openCloseTimeline"] = [];
+
+  for (const store of timelineStores) {
+    const openedAtTimestamp = parseDateValue(store.openedAt);
+    const closedAtTimestamp = parseDateValue(store.closedAt);
+
+    if (openedAtTimestamp !== null && openedAtTimestamp >= cutoffTimestamp) {
+      events.push({
+        date: normalizeDateValue(store.openedAt),
+        type: "open",
+        storeName: store.storeName,
+      });
+    }
+
+    if (closedAtTimestamp !== null && closedAtTimestamp >= cutoffTimestamp) {
+      const monthsOperated = calculateOperatedMonths(store);
+
+      events.push({
+        date: normalizeDateValue(store.closedAt),
+        type: "close",
+        storeName: store.storeName,
+        ...(monthsOperated !== null ? { monthsOperated } : {}),
+      });
+    }
+  }
+
+  return events.sort(
+    (left, right) => Date.parse(right.date) - Date.parse(left.date),
+  );
+}
+
+function buildAreaSurvival(
+  sameCategoryStores: StoreEntity[],
+  userArea: number,
+): ReportPaidData["areaSurvival"] {
+  const areaStores = sameCategoryStores.filter(
+    (store) => store.floorArea > 0 && Boolean(store.openedAt),
+  );
+  const avgArea =
+    areaStores.length > 0
+      ? roundNumber(
+          areaStores.reduce((sum, store) => sum + store.floorArea, 0) / areaStores.length,
+          1,
+        )
+      : 0;
+  const lowerBound = Math.max(5, userArea * 0.8);
+  const upperBound = userArea * 1.2;
+  const comparableStores = areaStores.filter(
+    (store) => store.floorArea >= lowerBound && store.floorArea <= upperBound,
+  );
+  const largerStores = areaStores.filter((store) => store.floorArea > upperBound);
+
+  return {
+    userArea: roundNumber(userArea, 1),
+    survivalRate: calculateSurvivalRate(
+      comparableStores.length > 0 ? comparableStores : areaStores,
+    ),
+    avgArea,
+    largerSurvivalRate: calculateSurvivalRate(
+      largerStores.length > 0 ? largerStores : areaStores,
+    ),
+  };
+}
+
+function buildFranchiseAnalysis(
+  sameCategoryStores: StoreEntity[],
+): ReportPaidData["franchiseAnalysis"] {
+  const franchiseStores = sameCategoryStores.filter((store) => store.isFranchise);
+  const brandCounts = new Map<string, number>();
+
+  for (const store of franchiseStores) {
+    if (!store.franchiseBrand) {
+      continue;
+    }
+
+    brandCounts.set(
+      store.franchiseBrand,
+      (brandCounts.get(store.franchiseBrand) ?? 0) + 1,
+    );
+  }
+
+  return {
+    count: franchiseStores.length,
+    ratio:
+      sameCategoryStores.length > 0
+        ? roundNumber(franchiseStores.length / sameCategoryStores.length, 4)
+        : 0,
+    topBrands: [...brandCounts.entries()]
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 5)
+      .map(([brand]) => brand),
   };
 }
 
@@ -632,6 +885,7 @@ function parseFreeData(
     ? (record.peakTimes as PeakTime[])
     : [];
   const competition = asRecord(record.competition);
+  const survivalStats = asRecord(record.survivalStats);
 
   return {
     temperature: {
@@ -655,6 +909,11 @@ function parseFreeData(
       insightText:
         asString(competition.insightText) ?? "경쟁 강도는 기본 수준으로 해석됩니다.",
     },
+    survivalStats: {
+      rate3y: asNumber(survivalStats.rate3y, 0),
+      avgMonths: asNumber(survivalStats.avgMonths, 0),
+      totalSame: asNumber(survivalStats.totalSame, 0),
+    },
   };
 }
 
@@ -666,6 +925,8 @@ function parsePaidData(
   const revenue = asRecord(record.revenue);
   const bep = record.bep === null ? null : asRecord(record.bep);
   const closureRisk = asRecord(record.closureRisk);
+  const areaSurvival = asRecord(record.areaSurvival);
+  const franchiseAnalysis = asRecord(record.franchiseAnalysis);
 
   return {
     revenue: {
@@ -698,6 +959,47 @@ function parsePaidData(
       extinctionRate: Number(asNumber(closureRisk.extinctionRate, 0)),
       insightText:
         asString(closureRisk.insightText) ?? "폐업 리스크 정보가 준비되었습니다.",
+    },
+    competitorList: Array.isArray(record.competitorList)
+      ? record.competitorList.map((item) => {
+          const competitor = asRecord(item);
+
+          return {
+            name: asString(competitor.name) ?? "이름 미상",
+            area:
+              competitor.area === null
+                ? null
+                : asNullableNumber(competitor.area),
+            openedAt: asString(competitor.openedAt),
+            isFranchise: Boolean(competitor.isFranchise),
+            franchiseBrand: asString(competitor.franchiseBrand),
+            distance: asNumber(competitor.distance, 0),
+          };
+        })
+      : [],
+    openCloseTimeline: Array.isArray(record.openCloseTimeline)
+      ? record.openCloseTimeline.map((item) => {
+          const event = asRecord(item);
+          const monthsOperated = asNullableNumber(event.monthsOperated);
+
+          return {
+            date: asString(event.date) ?? new Date(0).toISOString(),
+            type: event.type === "close" ? "close" : "open",
+            storeName: asString(event.storeName) ?? "이름 미상",
+            ...(monthsOperated !== null ? { monthsOperated } : {}),
+          };
+        })
+      : [],
+    areaSurvival: {
+      userArea: asNumber(areaSurvival.userArea, 0),
+      survivalRate: asNumber(areaSurvival.survivalRate, 0),
+      avgArea: asNumber(areaSurvival.avgArea, 0),
+      largerSurvivalRate: asNumber(areaSurvival.largerSurvivalRate, 0),
+    },
+    franchiseAnalysis: {
+      count: asNumber(franchiseAnalysis.count, 0),
+      ratio: asNumber(franchiseAnalysis.ratio, 0),
+      topBrands: asStringArray(franchiseAnalysis.topBrands),
     },
   };
 }
@@ -887,6 +1189,115 @@ function isRecentDate(value: string, days: number): boolean {
   return diffDays >= 0 && diffDays <= days;
 }
 
+function dedupeStoresById(stores: StoreEntity[]): StoreEntity[] {
+  const storeMap = new Map<string, StoreEntity>();
+
+  for (const store of stores) {
+    storeMap.set(store.id, store);
+  }
+
+  return [...storeMap.values()];
+}
+
+function calculateDistanceMeters(
+  pointA: {
+    lat: number;
+    lng: number;
+  },
+  pointB: {
+    lat: number;
+    lng: number;
+  },
+): number {
+  const earthRadius = 6_371_000;
+  const latDelta = degreesToRadians(pointB.lat - pointA.lat);
+  const lngDelta = degreesToRadians(pointB.lng - pointA.lng);
+  const startLat = degreesToRadians(pointA.lat);
+  const endLat = degreesToRadians(pointB.lat);
+  const haversine =
+    Math.sin(latDelta / 2) ** 2 +
+    Math.cos(startLat) * Math.cos(endLat) * Math.sin(lngDelta / 2) ** 2;
+
+  return 2 * earthRadius * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function calculateSurvivalRate(stores: StoreEntity[]): number {
+  const operatedMonths = stores
+    .map((store) => calculateOperatedMonths(store))
+    .filter((value): value is number => value !== null);
+
+  if (operatedMonths.length === 0) {
+    return 0;
+  }
+
+  const survived3yCount = operatedMonths.filter((months) => months >= 36).length;
+
+  return roundNumber(survived3yCount / operatedMonths.length, 4);
+}
+
+function calculateOperatedMonths(store: StoreEntity): number | null {
+  if (!store.openedAt) {
+    return null;
+  }
+
+  const startTimestamp = parseDateValue(store.openedAt);
+  const endTimestamp = parseDateValue(store.closedAt) ?? Date.now();
+
+  if (startTimestamp === null || endTimestamp < startTimestamp) {
+    return null;
+  }
+
+  const start = new Date(startTimestamp);
+  const end = new Date(endTimestamp);
+  let months =
+    (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
+    (end.getUTCMonth() - start.getUTCMonth());
+
+  if (end.getUTCDate() < start.getUTCDate()) {
+    months -= 1;
+  }
+
+  return Math.max(0, months);
+}
+
+function parseDateValue(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Date.parse(value);
+
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function normalizeDateValue(value: string | null): string {
+  if (!value) {
+    return new Date(0).toISOString();
+  }
+
+  const parsed = Date.parse(value);
+
+  return Number.isNaN(parsed) ? new Date(0).toISOString() : new Date(parsed).toISOString();
+}
+
+function addDays(date: Date, days: number): Date {
+  const copy = new Date(date);
+  copy.setUTCDate(copy.getUTCDate() + days);
+  return copy;
+}
+
+function formatDateOnly(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function degreesToRadians(value: number): number {
+  return (value * Math.PI) / 180;
+}
+
+function roundNumber(value: number, digits: number): number {
+  return Number(value.toFixed(digits));
+}
+
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -911,6 +1322,32 @@ function asNumber(value: unknown, fallback: number): number {
   }
 
   return fallback;
+}
+
+function asNullableNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.length > 0)
+    : [];
 }
 
 function asTrend(value: unknown): ReportFreeData["temperature"]["trend"] {

@@ -36,8 +36,8 @@ function SearchContent() {
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const circleRef = useRef<any>(null);
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  const nearbyTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nearbyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 카카오맵 초기화
   useEffect(() => {
