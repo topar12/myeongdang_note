@@ -96,7 +96,13 @@ export async function generateAIAnalysis(input: AnalysisInput): Promise<string> 
     });
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    // Gemini 2.5 Flash "thinking" 모드: 실제 텍스트가 마지막 part에 있을 수 있음
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const textParts = parts
+      .filter((p: { text?: string }) => p.text)
+      .map((p: { text: string }) => p.text);
+    // 마지막 텍스트 part가 본문 (thinking은 앞쪽 part)
+    const text = textParts.length > 0 ? textParts[textParts.length - 1] : null;
 
     if (text) return text;
     return generateFallbackAnalysis(input);

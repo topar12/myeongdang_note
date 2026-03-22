@@ -545,7 +545,7 @@ export default function ReportPage() {
             )}
 
             {/* AI 종합 의견서 */}
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[24px] shadow-xl p-6 text-white">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[24px] shadow-xl p-6 text-white overflow-visible">
               <h3 className="text-[17px] font-black mb-4 flex items-center gap-2">
                 <span className="text-lg">🤖</span> AI 종합 분석 의견서
               </h3>
@@ -555,7 +555,7 @@ export default function ReportPage() {
                   <p className="text-blue-200 text-sm font-medium">AI가 142만개 점포 데이터를 분석하고 있습니다...</p>
                 </div>
               ) : aiAnalysis ? (
-                <div className="bg-white/10 backdrop-blur rounded-xl p-5 ai-analysis-content">
+                <div className="bg-white/10 backdrop-blur rounded-xl p-5 overflow-visible">
                   <ReactMarkdown
                     components={{
                       h1: ({children}) => <h2 className="text-lg font-extrabold text-white mt-4 mb-2 first:mt-0">{children}</h2>,

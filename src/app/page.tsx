@@ -44,7 +44,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== 핵심 가치 3개 ===== */}
-      <section className="px-5 -mt-8 max-w-lg mx-auto">
+      <section className="relative z-20 px-5 -mt-8 max-w-lg mx-auto">
         <div className="grid grid-cols-3 gap-3">
           {[
             { icon: <ShieldCheck className="w-6 h-6" />, label: '3년 생존율', sub: '실제 폐업 기록 기반', color: 'text-emerald-600 bg-emerald-50' },
