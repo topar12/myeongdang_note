@@ -26,12 +26,16 @@ export default function LandingPage() {
     <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 pb-[100px]">
       {/* 히어로 섹션 */}
       <section className="px-4 pt-10 pb-8 flex flex-col items-center text-center min-h-[480px]">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-trust-blue text-xs font-bold rounded-full mb-4">
+          <span className="w-1.5 h-1.5 bg-trust-blue rounded-full animate-pulse" />
+          142만개 점포 실시간 분석 중
+        </div>
         <h1 className="text-[32px] font-bold leading-tight mb-4 tracking-tight">
-          내 가게 자리,<br />
-          <span className="text-trust-blue">데이터로 검증</span>하세요
+          이 자리에서<br />
+          <span className="text-trust-blue">살아남을 수 있을까?</span>
         </h1>
         <p className="text-lg text-muted-foreground mb-10">
-          내 동네 상권, 데이터로 확인하세요<br />10초 완성 프리미엄 상권 분석
+          142만개 점포의 생사 기록으로<br />당신의 자리를 검증합니다
         </p>
 
         {/* 온보딩 분기 */}
@@ -48,7 +52,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <div className="font-bold text-[19px] text-slate-900">상권이 궁금해요</div>
-                  <div className="text-[15px] text-slate-500 mt-1">이 동네, 장사가 잘 될까요?</div>
+                  <div className="text-[15px] text-slate-500 mt-1">이 골목에서 몇 곳이 살아남았을까?</div>
                 </div>
               </button>
 
@@ -97,8 +101,8 @@ export default function LandingPage() {
 
       {/* 리포트 미리보기 섹션 */}
       <section className="px-4 py-16 flex flex-col items-center overflow-hidden bg-slate-900 text-white mt-10">
-        <h2 className="text-2xl font-bold mb-2 text-center">대시보드 NO, 처방전 YES</h2>
-        <p className="text-slate-400 text-center mb-10">어려운 데이터 대신, 직관적인 결론만 드립니다</p>
+        <h2 className="text-2xl font-bold mb-2 text-center">중개사도 안 알려주는 진짜 데이터</h2>
+        <p className="text-slate-400 text-center mb-10">이 자리에서 카페가 3번 망한 사실,<br />계약 전에 알았다면요?</p>
         
         <div className="w-full max-w-sm relative transform perspective-1000">
           <div className="rotate-y-12 rotate-x-12 rotate-z-[-5deg] scale-105 transition-transform duration-700 hover:rotate-0 hover:scale-100">
@@ -128,8 +132,8 @@ export default function LandingPage() {
           
           {/* 하이라이트 배지 */}
           <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 bg-white text-slate-900 rounded-2xl shadow-xl p-4 border border-trust-blue/20 animate-bounce">
-            <div className="text-sm font-bold text-trust-blue mb-1">예상 월매출</div>
-            <div className="text-2xl font-extrabold tracking-tight">2,400<span className="text-lg">만원</span></div>
+            <div className="text-sm font-bold text-trust-blue mb-1">3년 생존율</div>
+            <div className="text-2xl font-extrabold tracking-tight">38<span className="text-lg">%</span></div>
           </div>
         </div>
       </section>
@@ -154,7 +158,7 @@ export default function LandingPage() {
             </div>
             <div>
               <div className="font-bold text-[19px] text-slate-900 mb-1">2. 업종을 고르세요</div>
-              <div className="text-slate-500 font-medium">창업할 업종을 선택합니다</div>
+              <div className="text-slate-500 font-medium">궁금한 업종을 선택합니다</div>
             </div>
           </div>
 
@@ -163,8 +167,8 @@ export default function LandingPage() {
               <FileText className="h-6 w-6" />
             </div>
             <div>
-              <div className="font-bold text-[19px] text-slate-900 mb-1">3. 명당노트가 완성됩니다</div>
-              <div className="text-slate-500 font-medium">1페이지 PDF로 즉시 확인하세요</div>
+              <div className="font-bold text-[19px] text-slate-900 mb-1">3. AI가 분석합니다</div>
+              <div className="text-slate-500 font-medium">생존율, 경쟁 현황, AI 종합 의견까지</div>
             </div>
           </div>
         </div>
@@ -174,13 +178,13 @@ export default function LandingPage() {
       <section className="px-4 py-16 text-center bg-slate-50 border-t">
         <div className="flex justify-center gap-10 mb-12">
           <div>
-            <div className="text-4xl font-extrabold text-trust-blue tracking-tight">1,240+</div>
-            <div className="text-sm font-bold text-slate-600 mt-2">사용 중인 중개사</div>
+            <div className="text-4xl font-extrabold text-trust-blue tracking-tight">142만</div>
+            <div className="text-sm font-bold text-slate-600 mt-2">분석 가능 점포</div>
           </div>
           <div className="w-px bg-slate-200"></div>
           <div>
-            <div className="text-4xl font-extrabold text-trust-blue tracking-tight">15,000+</div>
-            <div className="text-sm font-bold text-slate-600 mt-2">누적 생성 리포트</div>
+            <div className="text-4xl font-extrabold text-trust-blue tracking-tight">서울경기충청</div>
+            <div className="text-sm font-bold text-slate-600 mt-2">전 지역 커버</div>
           </div>
         </div>
 
@@ -194,13 +198,13 @@ export default function LandingPage() {
               <Star className="h-5 w-5 fill-current" />
             </div>
             <p className="font-bold text-[17px] text-slate-800 leading-relaxed mb-4">
-              &quot;손님 브리핑할 때 이거 하나면 신뢰도가 확 올라갑니다. 말로 설명하던 걸 데이터로 보여주니 계약율이 2배는 뛰었어요.&quot;
+              &quot;계약하려던 자리에서 같은 업종이 3번 연속 망한 사실을 알려줬어요. 덕분에 다른 자리를 찾아 지금 2년째 잘 운영 중입니다.&quot;
             </p>
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border border-slate-100">
                 <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">김</AvatarFallback>
               </Avatar>
-              <div className="text-[15px] font-medium text-slate-500">김OO 소장 (강남구)</div>
+              <div className="text-[15px] font-medium text-slate-500">박OO 사장님 (대전 둔산동)</div>
             </div>
           </div>
           

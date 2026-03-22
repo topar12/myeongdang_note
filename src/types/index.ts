@@ -91,6 +91,12 @@ export interface CompetitionDensity {
   insightText: string;
 }
 
+export interface SurvivalStats {
+  rate3y: number; // 0~1
+  avgMonths: number;
+  totalSame: number;
+}
+
 // ── 매출 추정 ──
 
 export interface RevenueEstimate {
@@ -126,18 +132,52 @@ export interface ClosureRisk {
   insightText: string;
 }
 
+export interface CompetitorListItem {
+  name: string;
+  area: number | null;
+  openedAt: string | null;
+  isFranchise: boolean;
+  franchiseBrand: string | null;
+  distance: number;
+}
+
+export interface OpenCloseTimelineItem {
+  date: string;
+  type: "open" | "close";
+  storeName: string;
+  monthsOperated?: number;
+}
+
+export interface AreaSurvival {
+  userArea: number;
+  survivalRate: number; // 0~1
+  avgArea: number;
+  largerSurvivalRate: number; // 0~1
+}
+
+export interface FranchiseAnalysis {
+  count: number;
+  ratio: number; // 0~1
+  topBrands: string[];
+}
+
 // ── 리포트 ──
 
 export interface ReportFreeData {
   temperature: TemperatureScore;
   peakTimes: PeakTime[];
   competition: CompetitionDensity;
+  survivalStats: SurvivalStats;
 }
 
 export interface ReportPaidData {
   revenue: RevenueEstimate;
   bep: BEPSimulation | null; // 임대료 입력 시에만
   closureRisk: ClosureRisk;
+  competitorList: CompetitorListItem[];
+  openCloseTimeline: OpenCloseTimelineItem[];
+  areaSurvival: AreaSurvival;
+  franchiseAnalysis: FranchiseAnalysis;
 }
 
 export interface Report {

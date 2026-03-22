@@ -70,6 +70,10 @@ export default function ReportPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [rent, setRent] = useState([200]);
   const [loading, setLoading] = useState(true);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [aiStats, setAiStats] = useState<any>(null);
+  const [aiCompetitors, setAiCompetitors] = useState<any[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('lastReport');
@@ -78,6 +82,36 @@ export default function ReportPage() {
     }
     setLoading(false);
   }, []);
+
+  // 유료 해제 시 AI 분석 호출
+  useEffect(() => {
+    if (!isUnlocked || !reportData) return;
+    const fetchAI = async () => {
+      setAiLoading(true);
+      try {
+        const free = reportData.freeData;
+        const lat = (reportData as any).lat || 36.3525;
+        const lng = (reportData as any).lng || 127.3858;
+        const res = await fetch('/api/report/ai-analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lat, lng,
+            address: reportData.address,
+            businessCategory: reportData.businessCategory,
+            radius: 500,
+          }),
+        });
+        const json = await res.json();
+        const data = json.data || json;
+        setAiAnalysis(data.aiAnalysis || null);
+        setAiStats(data.stats || null);
+        setAiCompetitors(data.competitors || []);
+      } catch { /* fallback handled */ }
+      setAiLoading(false);
+    };
+    fetchAI();
+  }, [isUnlocked, reportData]);
 
   const free = reportData?.freeData;
   const address = reportData?.address || '서울특별시 마포구 동교동 153-15';
@@ -291,7 +325,7 @@ export default function ReportPage() {
               </div>
               
               <h3 className="text-[22px] md:text-[24px] font-black text-slate-800 tracking-tight leading-[1.3] mb-3">
-                이 매장의 <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">진짜 매출</span>이<br />안 궁금하신가요?
+                이 자리에서 <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">몇 곳이 살아남았는지</span><br />확인하셨나요?
               </h3>
               
               <p className="text-[14px] text-slate-500 mb-8 leading-relaxed font-bold tracking-tight">
@@ -308,7 +342,7 @@ export default function ReportPage() {
               
               <div className="mt-5 flex flex-col items-center gap-2.5 w-full">
                 <p className="text-[11px] text-slate-400 font-extrabold tracking-tight bg-slate-100/50 px-3 py-1.5 rounded-lg border border-slate-100 w-full">
-                  💡 커피 한 잔 값으로 권리금 5천만원 방어하기
+                  💡 중개사도 안 알려주는 생존율 · 경쟁 전수 리스트 · AI 종합 의견
                 </p>
                 <div className="flex items-center justify-center gap-2 text-[9px] font-black tracking-widest text-slate-300 mt-2">
                   <span className="flex items-center gap-1"><img src="/kp-icon.svg" className="w-3 h-3 opacity-50 hidden" alt="" /> KAKAO PAY</span>
@@ -454,6 +488,74 @@ export default function ReportPage() {
               <AIInsight text="해당 지역 동종업종의 3년 내 폐업률 트렌드는 평균을 상회합니다. '저가 브랜드 출혈경쟁'이 주요 폐업 요인으로 지목되므로, 메뉴 객단가를 높이는 시그니처 전략이 없다면 리스크가 높습니다." />
             </div>
           </div>
+        )}
+
+        {/* ===== AI 종합 분석 + 경쟁 매장 리스트 (Paid, AI 응답 후) ===== */}
+        {isUnlocked && (
+          <>
+            {/* 경쟁 매장 전수 리스트 */}
+            {aiCompetitors.length > 0 && (
+              <div className="bg-white/80 backdrop-blur-xl rounded-[24px] border border-white shadow-[0_8px_40px_rgb(0,0,0,0.04)] p-6">
+                <h3 className="text-[17px] font-black text-slate-800 mb-4 flex items-center gap-2">
+                  <span className="text-lg">🏪</span> 주변 경쟁 매장 전수 리스트
+                </h3>
+                <div className="space-y-2">
+                  {aiCompetitors.map((c: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-100">
+                      <span className="text-xs font-bold text-slate-400 w-5">{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm text-slate-800 truncate">{c.name}</div>
+                        <div className="text-xs text-slate-400">
+                          {c.area ? `${c.area}㎡` : '-'} · {c.openedAt ? c.openedAt.substring(0, 7) + ' 개업' : '업력미상'}
+                        </div>
+                      </div>
+                      {c.isFranchise && (
+                        <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full shrink-0">프랜차이즈</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {aiStats && (
+                  <div className="mt-4 flex gap-3">
+                    <div className="flex-1 bg-blue-50 rounded-xl p-3 text-center">
+                      <div className="text-[22px] font-extrabold text-blue-600">{aiStats.sameCategory}</div>
+                      <div className="text-[11px] font-bold text-blue-400">동종업종</div>
+                    </div>
+                    <div className="flex-1 bg-slate-50 rounded-xl p-3 text-center">
+                      <div className="text-[22px] font-extrabold text-slate-700">{aiStats.franchiseRatio}%</div>
+                      <div className="text-[11px] font-bold text-slate-400">프랜차이즈</div>
+                    </div>
+                    <div className="flex-1 bg-amber-50 rounded-xl p-3 text-center">
+                      <div className="text-[22px] font-extrabold text-amber-600">{aiStats.survivalRate3y}%</div>
+                      <div className="text-[11px] font-bold text-amber-400">3년 생존율</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AI 종합 의견서 */}
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[24px] shadow-xl p-6 text-white">
+              <h3 className="text-[17px] font-black mb-4 flex items-center gap-2">
+                <span className="text-lg">🤖</span> AI 종합 분석 의견서
+              </h3>
+              {aiLoading ? (
+                <div className="flex flex-col items-center py-8 gap-3">
+                  <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                  <p className="text-blue-200 text-sm font-medium">AI가 142만개 점포 데이터를 분석하고 있습니다...</p>
+                </div>
+              ) : aiAnalysis ? (
+                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+                  <div className="text-[14px] leading-relaxed whitespace-pre-wrap text-blue-50">{aiAnalysis}</div>
+                </div>
+              ) : (
+                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+                  <p className="text-blue-200 text-sm">AI 분석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
+                </div>
+              )}
+              <p className="text-[10px] text-blue-300 mt-3 text-center">Powered by Gemini AI · 공공데이터 기반 참고용 분석</p>
+            </div>
+          </>
         )}
 
         {/* ===== Footer Actions ===== */}

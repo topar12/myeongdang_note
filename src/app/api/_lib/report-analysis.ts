@@ -76,6 +76,29 @@ interface PaymentRow {
   payment_type: string;
 }
 
+const STORE_SELECT_COLUMNS = [
+  "id",
+  "store_name",
+  "business_category_large",
+  "business_category_medium",
+  "business_category_small",
+  "business_code",
+  "location",
+  "address_jibun",
+  "address_road",
+  "dong_code",
+  "floor_area",
+  "opened_at",
+  "closed_at",
+  "status",
+  "is_franchise",
+  "franchise_brand",
+  "semas_id",
+  "localdata_id",
+  "match_confidence",
+  "data_updated_at",
+].join(", ");
+
 export interface ReportAnalysisBundle {
   freeData: ReportFreeData;
   paidData: ReportPaidData;
@@ -97,9 +120,28 @@ export async function buildReportAnalysis(
     lng: input.lng,
     radiusMeters: 500,
   });
+  const sameCategoryStores = await fetchSameCategoryNearbyStores(
+    adminSupabase,
+    nearbyStores,
+    {
+      lat: input.lat,
+      lng: input.lng,
+      radiusMeters: 500,
+      businessCategory,
+    },
+  );
+  const recentClosedSameCategoryStores = await fetchRecentClosedCategoryStores(
+    adminSupabase,
+    businessCategory,
+    {
+      lat: input.lat,
+      lng: input.lng,
+      radiusMeters: 500,
+    },
+  );
   const districtStats = await fetchDistrictStats(adminSupabase, nearbyStores);
   const syntheticChanges = synthesizeRecentChanges(nearbyStores);
-  const storeArea = inferTargetStoreArea(nearbyStores, businessCategory);
+  const storeArea = inferTargetStoreArea(sameCategoryStores, businessCategory);
   const temperature = districtTemperatureScore(
     { lat: input.lat, lng: input.lng },
     500,
@@ -142,16 +184,33 @@ export async function buildReportAnalysis(
   const bep = buildBepSimulation(revenue, storeArea);
   const targetDong = getDominantDongCode(nearbyStores);
   const isPaid = await resolveSubscriptionAccess(adminSupabase, userId, targetDong);
+  const survivalStats = buildSurvivalStats(sameCategoryStores);
+  const competitorList = buildCompetitorList(
+    sameCategoryStores,
+    { lat: input.lat, lng: input.lng },
+    30,
+  );
+  const openCloseTimeline = buildOpenCloseTimeline(
+    sameCategoryStores,
+    recentClosedSameCategoryStores,
+  );
+  const areaSurvival = buildAreaSurvival(sameCategoryStores, storeArea);
+  const franchiseAnalysis = buildFranchiseAnalysis(sameCategoryStores);
 
   const freeData: ReportFreeData = {
     temperature,
     peakTimes,
     competition,
+    survivalStats,
   };
   const paidData: ReportPaidData = {
     revenue,
     bep,
     closureRisk,
+    competitorList,
+    openCloseTimeline,
+    areaSurvival,
+    franchiseAnalysis,
   };
 
   return {
