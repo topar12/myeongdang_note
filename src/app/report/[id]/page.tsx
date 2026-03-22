@@ -301,45 +301,49 @@ export default function ReportPage() {
           <AIInsight text={compInsight} />
         </div>
 
-        {/* ===== Paywall (Premium Frosted Glass Design) ===== */}
+        {/* ===== Paywall — 블러 뒤는 가짜 placeholder (실제 데이터 없음) ===== */}
         {!isUnlocked && (
-           <div className="relative mt-2 rounded-[24px] overflow-hidden group shadow-2xl shadow-indigo-900/10">
-            {/* Blurry Fake Background Content */}
-            <div className="bg-white p-6 pointer-events-none select-none filter blur-[12px] opacity-60 transform scale-[0.98] h-[340px]">
-              <h3 className="text-lg font-bold">💰 예상 월매출 범위</h3>
-              <div className="flex gap-4 my-2">
-                <div className="text-center flex-1 h-32 bg-slate-200 rounded-xl" />
-                <div className="text-center flex-2 h-40 bg-blue-200 rounded-xl" />
-                <div className="text-center flex-1 h-32 bg-slate-200 rounded-xl" />
+          <div className="relative mt-2 rounded-2xl overflow-hidden shadow-xl">
+            {/* 가짜 콘텐츠 (실제 데이터 아님, 순수 UI placeholder) */}
+            <div className="bg-white p-5 pointer-events-none select-none blur-[10px] opacity-50 space-y-4" aria-hidden="true">
+              <div className="flex gap-3">
+                <div className="flex-1 h-20 bg-amber-100 rounded-xl" />
+                <div className="flex-1 h-20 bg-slate-100 rounded-xl" />
+                <div className="flex-1 h-20 bg-blue-100 rounded-xl" />
               </div>
-              <div className="w-full h-8 bg-slate-200 mt-4 rounded-lg" />
+              <div className="space-y-2">
+                <div className="h-10 bg-slate-100 rounded-lg" />
+                <div className="h-10 bg-slate-100 rounded-lg" />
+                <div className="h-10 bg-slate-100 rounded-lg" />
+                <div className="h-10 bg-slate-100 rounded-lg" />
+              </div>
+              <div className="h-24 bg-blue-50 rounded-xl" />
+              <div className="h-32 bg-indigo-50 rounded-xl" />
             </div>
-            
-            {/* Real Paywall Overlay */}
-            <div className="absolute inset-0 bg-white/70 backdrop-blur-xl border border-white rounded-[24px] flex flex-col items-center justify-center px-8 py-10 text-center z-10 shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
-              
-              <div className="relative mb-6">
-                <div className="absolute inset-0 bg-indigo-500 rounded-full blur-[20px] opacity-30 animate-pulse" />
-                <div className="w-[68px] h-[68px] rounded-full bg-gradient-to-b from-white to-indigo-50 border border-indigo-100 shadow-[0_10px_30px_rgba(99,102,241,0.2)] flex items-center justify-center relative z-10 group-hover:scale-105 transition-transform duration-300">
-                  <Lock className="w-8 h-8 text-indigo-600" />
-                </div>
+
+            {/* 오버레이 — 잠금 + CTA 버튼 (여기에 결제 버튼) */}
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center px-6 py-10 text-center z-10">
+              <div className="w-16 h-16 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mb-5 shadow-lg">
+                <Lock className="w-7 h-7 text-blue-600" />
               </div>
-              
-              <h3 className="text-[22px] md:text-[24px] font-black text-slate-800 tracking-tight leading-[1.3] mb-3">
-                이 자리에서 <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">몇 곳이 살아남았는지</span><br />확인하셨나요?
+
+              <h3 className="text-[21px] font-extrabold text-slate-800 leading-tight mb-2">
+                프리미엄 분석 리포트
               </h3>
-              
-              <p className="text-[14px] text-slate-500 mb-8 leading-relaxed font-bold tracking-tight">
-                경쟁사 매출 분포 · 평균 생존확률<br/>리스크 요인을 정확한 데이터로 직시하고,<br/>
-                <b>&apos;감&apos;이 아닌 &apos;숫자&apos;로 결정하세요.</b>
+              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                생존율 · 경쟁 전수 리스트 · 폐업 타임라인<br />
+                매출 추정 · AI 종합 의견서
               </p>
-              
-              <p className="text-[12px] text-slate-400 font-bold mt-2">
-                👇 아래 버튼을 눌러 잠금을 해제하세요
-              </p>
-              <p className="text-[11px] text-slate-400 font-medium mt-3 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 w-full text-center">
-                생존율 · 경쟁 전수 리스트 · AI 종합 의견 · 매출 추정
-              </p>
+
+              <Button
+                onClick={() => setIsUnlocked(true)}
+                className="w-full max-w-xs h-14 text-[16px] font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Coffee className="w-5 h-5 mr-2" />
+                ₩4,900 잠금 해제
+              </Button>
+
+              <p className="text-[11px] text-slate-400 mt-3">카카오페이 · 신용카드 · 간편결제</p>
             </div>
           </div>
         )}
@@ -548,21 +552,7 @@ export default function ReportPage() {
         </div>
       </div>
 
-      {/* Sticky 결제 버튼 (Premium Floating UI) */}
-      {!isUnlocked && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-10 sm:px-6 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/95 to-transparent -z-10" />
-          <div className="max-w-lg mx-auto pointer-events-auto shadow-2xl shadow-indigo-900/10 rounded-[20px]">
-            <Button onClick={() => setIsUnlocked(true)} className="w-full h-16 text-[16px] font-black bg-slate-900 hover:bg-slate-800 text-white rounded-[20px] shadow-[0_10px_30px_rgba(15,23,42,0.2)] flex items-center justify-center gap-2 group/sticky border border-slate-800 hover:border-slate-700 transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg] translate-x-[-150%] animate-[shimmer_3s_infinite]" />
-              <Lock className="w-5 h-5 text-indigo-400 group-hover/sticky:animate-bounce" />
-              프리미엄 리포트 잠금해제
-              <div className="w-1.5 h-1.5 bg-slate-600 rounded-full mx-1" />
-              <span className="text-indigo-300 font-black tracking-tight">4,900원</span>
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Sticky 버튼 제거됨 — 결제 버튼은 페이월 카드 안에만 존재 */}
     </main>
   );
 }
