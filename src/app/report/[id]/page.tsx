@@ -6,6 +6,7 @@ import { ScoreGauge } from '@/components/report/ScoreGauge';
 import { Download, Share2, Copy, Lock, AlertTriangle, TrendingDown, Store, Coffee, ArrowUp, ArrowRight, ArrowDown, Sparkles, MapPin, Target, ShieldAlert, BadgeInfo, ReceiptText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import ReactMarkdown from 'react-markdown';
 
 interface ReportData {
   reportId: string;
@@ -554,8 +555,21 @@ export default function ReportPage() {
                   <p className="text-blue-200 text-sm font-medium">AI가 142만개 점포 데이터를 분석하고 있습니다...</p>
                 </div>
               ) : aiAnalysis ? (
-                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-                  <div className="text-[14px] leading-relaxed whitespace-pre-wrap text-blue-50">{aiAnalysis}</div>
+                <div className="bg-white/10 backdrop-blur rounded-xl p-5 ai-analysis-content">
+                  <ReactMarkdown
+                    components={{
+                      h1: ({children}) => <h2 className="text-lg font-extrabold text-white mt-4 mb-2 first:mt-0">{children}</h2>,
+                      h2: ({children}) => <h3 className="text-base font-extrabold text-white mt-4 mb-2 first:mt-0">{children}</h3>,
+                      h3: ({children}) => <h4 className="text-sm font-bold text-blue-200 mt-3 mb-1">{children}</h4>,
+                      p: ({children}) => <p className="text-[14px] leading-[1.8] text-blue-100 mb-3 last:mb-0">{children}</p>,
+                      strong: ({children}) => <strong className="font-extrabold text-white">{children}</strong>,
+                      ul: ({children}) => <ul className="space-y-1.5 mb-3">{children}</ul>,
+                      ol: ({children}) => <ol className="space-y-2 mb-3 list-none">{children}</ol>,
+                      li: ({children}) => <li className="text-[14px] leading-[1.7] text-blue-100 flex gap-2"><span className="text-blue-300 shrink-0">•</span><span>{children}</span></li>,
+                    }}
+                  >
+                    {aiAnalysis}
+                  </ReactMarkdown>
                 </div>
               ) : (
                 <div className="bg-white/10 backdrop-blur rounded-xl p-4">
