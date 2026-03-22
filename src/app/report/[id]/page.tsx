@@ -1,362 +1,317 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
-import { Download, Share2, Copy, AlertTriangle, TrendingDown, Store, BadgeAlert } from 'lucide-react';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, PieChart, Pie, Cell } from 'recharts';
+import { Download, Share2, Copy, Lock, AlertTriangle, TrendingDown, Store, Coffee, ArrowUp, ArrowRight, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { ReportCard } from '@/components/report/ReportCard';
-import { ScoreGauge } from '@/components/report/ScoreGauge';
-import { BlurOverlay } from '@/components/report/BlurOverlay';
-import { StickyPayButton } from '@/components/report/StickyPayButton';
-import { TrafficLightBadge } from '@/components/report/TrafficLightBadge';
 
-// 목업 데이터
-const PEAK_TIME_DATA = [
-  { time: '평일 12~13시 ⭐', value: 85 },
-  { time: '금 18~20시', value: 65 },
-  { time: '토 15~17시', value: 50 },
-];
+interface ReportData {
+  reportId: string;
+  address: string;
+  businessCategory: string;
+  freeData: {
+    temperature: { score: number; trend: string; percentile: number; factors?: { storeDynamics: number; demandStability: number; districtVitality: number }; insightText?: string };
+    peakTimes: { dayType: string; timeSlot: string; relativeScore: number }[];
+    competition: { sameCategory: number; substituteCategory?: number; densityPercentile: number; insightText?: string };
+  } | null;
+}
 
-const RADAR_DATA = [
-  { subject: '점포 밀집도', A: 80, fullMark: 100 },
+const MOCK_RADAR = [
+  { subject: '점포 밀집', A: 80, fullMark: 100 },
   { subject: '매출 규모', A: 65, fullMark: 100 },
-  { subject: '유동 인구', A: 90, fullMark: 100 },
+  { subject: '유동인구', A: 90, fullMark: 100 },
   { subject: '경쟁 강도', A: 70, fullMark: 100 },
   { subject: '성장성', A: 55, fullMark: 100 },
 ];
 
-const REVENUE_DATA = [
-  { name: '하위 25%', value: 1800 },
-  { name: '중위 50%', value: 2400 },
-  { name: '상위 25%', value: 3200 },
-];
+const PEAK_EMOJI: Record<string, string> = { '12:00~13:00': '☀️', '18:00~20:00': '🌙', '15:00~17:00': '🎉', '11:00~12:00': '☀️', '19:00~21:00': '🌙' };
+
+function TrendIcon({ trend }: { trend: string }) {
+  if (trend === 'up') return <span className="inline-flex items-center gap-1 text-safe-green font-bold"><ArrowUp className="w-4 h-4" />상승 중</span>;
+  if (trend === 'down') return <span className="inline-flex items-center gap-1 text-warning-red font-bold"><ArrowDown className="w-4 h-4" />하락 중</span>;
+  return <span className="inline-flex items-center gap-1 text-slate-500 font-bold"><ArrowRight className="w-4 h-4" />유지</span>;
+}
+
+function RiskBadge({ level }: { level: 'safe' | 'caution' | 'danger' }) {
+  const styles = { safe: 'bg-emerald-50 text-emerald-600 border-emerald-200', caution: 'bg-amber-50 text-amber-600 border-amber-200', danger: 'bg-red-50 text-red-600 border-red-200' };
+  const labels = { safe: '🟢 안전', caution: '🟡 주의', danger: '🔴 위험' };
+  return <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold border ${styles[level]}`}>{labels[level]}</span>;
+}
+
+function AIInsight({ text }: { text: string }) {
+  return (
+    <div className="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500 mt-3">
+      <p className="text-[15px] leading-relaxed text-slate-700">💡 {text}</p>
+    </div>
+  );
+}
+
+function ScoreGauge({ score }: { score: number }) {
+  const data = [{ value: score }, { value: 100 - score }];
+  const color = score >= 70 ? '#DC2626' : score >= 40 ? '#F59E0B' : '#2563EB';
+  return (
+    <div className="relative w-full h-44">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie data={data} cx="50%" cy="90%" startAngle={180} endAngle={0} innerRadius="65%" outerRadius="90%" dataKey="value" stroke="none">
+            <Cell fill={color} />
+            <Cell fill="#E2E8F0" />
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="absolute inset-0 flex flex-col items-center justify-end pb-6">
+        <span className="text-[42px] font-extrabold leading-none" style={{ color }}>{score}</span>
+        <span className="text-sm text-slate-400 font-medium mt-1">/ 100점</span>
+      </div>
+    </div>
+  );
+}
 
 export default function ReportPage() {
+  const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [rent, setRent] = useState(200);
-
-  const [reportData, setReportData] = useState<{
-    address: string;
-    businessCategory: string;
-    freeData: Record<string, unknown>;
-  } | null>(null);
+  const [rent, setRent] = useState([200]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const saved = localStorage.getItem('lastReport');
     if (saved) {
-      try {
-        setReportData(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse saved report', e);
-      }
+      try { setReportData(JSON.parse(saved)); } catch { /* ignore */ }
     }
+    setLoading(false);
   }, []);
 
-  const handleUnlock = () => {
-    // 실제로는 결제 로직 연동
-    setIsUnlocked(true);
-  };
+  const free = reportData?.freeData;
+  const address = reportData?.address || '분석 주소';
+  const category = reportData?.businessCategory || '업종';
+  const tempScore = free?.temperature?.score ?? 65;
+  const tempTrend = free?.temperature?.trend ?? 'stable';
+  const tempPercentile = free?.temperature?.percentile ?? 50;
+  const tempInsight = free?.temperature?.insightText ?? '상권 데이터를 분석하고 있습니다.';
 
-  const addressName = reportData?.address || '강남구 역삼동';
-  
-  const getCategoryName = (cat: string) => {
-    const map: Record<string, string> = {
-      'cafe': '카페/커피숍',
-      'restaurant': '음식점',
-      'salon': '미용실',
-      'convenience': '편의점',
-      'academy': '학원',
-      'laundry': '세탁소',
-      'pharmacy': '약국',
-      'realestate': '부동산'
-    };
-    return map[cat] || cat || '선택 업종';
-  };
-  const categoryName = getCategoryName(reportData?.businessCategory || 'cafe');
-  
-  // Type assertion for freeData temperature properties
-  const tempRecord = (reportData?.freeData?.temperature as Record<string, unknown>) || {};
-  const tempScore = (tempRecord.score as number) ?? 85;
-  const tempTrend = (tempRecord.trend as string) ?? 'up';
-  const tempText = tempTrend === 'up' ? '뜨거워지는 중' : tempTrend === 'down' ? '식어가는 중' : '유지 중';
-  const tempPercentile = (tempRecord.percentile as number) ?? 30;
+  const peakTimes = free?.peakTimes?.slice(0, 3) ?? [
+    { dayType: 'weekday', timeSlot: '12:00~13:00', relativeScore: 85 },
+    { dayType: 'weekday', timeSlot: '18:00~20:00', relativeScore: 65 },
+    { dayType: 'weekend', timeSlot: '15:00~17:00', relativeScore: 50 },
+  ];
 
-  // 월세에 따른 손익분기점 (가상의 계산식)
-  const coffeeCount = Math.floor(rent * 10000 / 4000); // 잔당 4천원 가정
-  const profitStatus = rent > 300 ? "danger" : rent > 150 ? "caution" : "safe";
+  const compCount = free?.competition?.sameCategory ?? 0;
+  const compPercentile = free?.competition?.densityPercentile ?? 50;
+  const compInsight = free?.competition?.insightText ?? '경쟁 데이터를 분석 중입니다.';
+  const compLevel: 'safe' | 'caution' | 'danger' = compPercentile > 70 ? 'danger' : compPercentile > 40 ? 'caution' : 'safe';
 
-  // 폐업 리스크 점수
-  const closureRiskScore = 72;
-  const getRiskColor = (score: number) => {
-    if (score >= 70) return 'bg-warning-red';
-    if (score >= 40) return 'bg-caution-yellow';
-    return 'bg-safe-green';
-  };
-  const getRiskTextClass = (score: number) => {
-    if (score >= 70) return 'text-warning-red';
-    if (score >= 40) return 'text-caution-yellow';
-    return 'text-safe-green';
-  };
+  const monthlyRent = rent[0];
+  const dailyCoffee = Math.ceil(monthlyRent * 10000 / 4500);
+  const rentRisk: 'safe' | 'caution' | 'danger' = monthlyRent > 300 ? 'danger' : monthlyRent > 180 ? 'caution' : 'safe';
+
+  const closureScore = 42;
+  const closureLevel: 'safe' | 'caution' | 'danger' = closureScore >= 60 ? 'danger' : closureScore >= 30 ? 'caution' : 'safe';
+
+  if (loading) {
+    return <main className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="animate-pulse text-lg text-slate-400">리포트 로딩 중...</div></main>;
+  }
 
   return (
-    <main className="min-h-screen bg-slate-50/50 pb-[120px]">
-      {/* 헤더 섹션 */}
-      <div className="bg-trust-blue text-white p-6 pb-10 rounded-b-[2.5rem] shadow-md relative overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
+
+      {/* ===== Section 1: Hero ===== */}
+      <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white px-5 pt-6 pb-10 rounded-b-[2rem] relative overflow-hidden">
+        <div className="absolute top-[-60px] right-[-60px] w-72 h-72 bg-white/10 rounded-full blur-3xl" />
         <div className="relative z-10">
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex justify-between items-start">
             <div>
-              <div className="font-bold text-trust-blue-100 mb-1.5 opacity-90 text-sm tracking-wide">명당노트 프리미엄 상권 분석 리포트</div>
-              <h1 className="text-[26px] font-bold leading-tight">{addressName}<br/>{categoryName}</h1>
+              <p className="text-blue-200 text-xs font-semibold tracking-widest mb-2">명당노트 AI 상권 분석 리포트</p>
+              <h1 className="text-[24px] font-extrabold leading-tight">{address}</h1>
+              <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-sm font-bold backdrop-blur">{category}</span>
             </div>
-            {/* 가상의 인증 도장 */}
-            <div className="w-16 h-16 rounded-full border-4 border-white/30 flex flex-col items-center justify-center rotate-12 bg-white/10 backdrop-blur-md shadow-lg">
-              <span className="text-white/90 font-black text-xs tracking-tighter leading-none">AI</span>
-              <span className="text-white/90 font-bold text-[10px] tracking-tighter leading-none mt-0.5">인증</span>
+            <div className="w-16 h-16 rounded-full border-[3px] border-white/40 flex flex-col items-center justify-center rotate-[-8deg] bg-white/10 backdrop-blur-md shadow-lg shrink-0">
+              <span className="text-white font-black text-[11px] leading-none">AI</span>
+              <span className="text-white/80 font-bold text-[9px] leading-none mt-0.5">인증분석</span>
             </div>
           </div>
-          <div className="text-sm opacity-80 font-medium">분석 일자: 2026년 3월 22일</div>
+          <p className="text-blue-200 text-xs mt-4">{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 분석</p>
         </div>
-        <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
       </div>
 
-      <div className="px-4 py-6 flex flex-col gap-3 -mt-8 relative z-20">
-        
-        {/* [Free Tier 영역] */}
-        
-        {/* 카드 1: 상권 온도 스코어 */}
-        <ReportCard 
-          title="상권 온도 스코어" 
-          aiComment={`이 골목은 상위 ${tempPercentile}% 밀집도를 보이고 있으며, 상권이 ${tempText} 입니다.`}
-        >
-          <div className="py-4 flex flex-col items-center">
-            <ScoreGauge score={tempScore} trend={tempTrend as "up" | "down" | "flat"} label={tempText} />
-            <div className="text-center text-sm font-medium text-slate-500 mt-2">상위 {tempPercentile}% 수준</div>
-          </div>
-        </ReportCard>
+      <div className="px-4 -mt-5 space-y-4">
 
-        {/* 카드 2: 피크타임 Top-3 */}
-        <ReportCard 
-          title="피크타임 Top-3" 
-          aiComment="점심시간 직장인 유동이 핵심입니다. 런치 메뉴에 집중하세요."
-        >
-          <div className="h-48 w-full mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={PEAK_TIME_DATA} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
-                <XAxis type="number" hide />
-                <YAxis dataKey="time" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 13, fill: 'var(--color-foreground)', fontWeight: 600 }} />
-                <Tooltip cursor={{fill: 'var(--color-slate-100)'}} />
-                <Bar dataKey="value" fill="var(--color-trust-blue)" radius={[0, 6, 6, 0]} barSize={28} />
-              </BarChart>
-            </ResponsiveContainer>
+        {/* ===== Free 카드 1: 상권 온도 ===== */}
+        <div className="bg-white rounded-2xl shadow-lg p-5">
+          <h3 className="text-lg font-bold text-slate-800 mb-1">🌡 상권 온도 스코어</h3>
+          <ScoreGauge score={tempScore} />
+          <div className="flex items-center justify-center gap-4 mt-2">
+            <TrendIcon trend={tempTrend} />
+            <span className="text-sm text-slate-500 font-medium">상위 {tempPercentile}%</span>
           </div>
-        </ReportCard>
+          <AIInsight text={tempInsight} />
+        </div>
 
-        {/* 카드 3: 경쟁 포화도 레이더 */}
-        <ReportCard 
-          title="경쟁 포화도 (반경 500m)" 
-          aiComment="경쟁이 적당한 편입니다. 차별화 전략으로 충분히 승산이 있습니다."
-        >
-          <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-center mb-2">
-            <span className="font-bold text-lg text-slate-800">동종업종 12개</span> <span className="text-slate-400 mx-2">|</span> <span className="font-medium text-slate-600">상위 30% 밀집도</span>
+        {/* ===== Free 카드 2: 피크타임 ===== */}
+        <div className="bg-white rounded-2xl shadow-lg p-5">
+          <h3 className="text-lg font-bold text-slate-800 mb-4">⏰ 피크타임 Top-3</h3>
+          <div className="space-y-3">
+            {peakTimes.map((pt, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <span className="text-xl w-8">{PEAK_EMOJI[pt.timeSlot] || (i === 0 ? '⭐' : '📊')}</span>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-bold text-slate-700">{pt.dayType === 'weekday' ? '평일' : '주말'} {pt.timeSlot}</span>
+                    <span className="text-sm font-extrabold text-blue-600">{pt.relativeScore}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-3">
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-400 h-3 rounded-full transition-all duration-700" style={{ width: `${pt.relativeScore}%` }} />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="h-64 w-full">
+          <AIInsight text="평일 점심 직장인 유동이 핵심입니다. 런치 메뉴와 테이크아웃에 집중하세요." />
+        </div>
+
+        {/* ===== Free 카드 3: 경쟁 포화도 ===== */}
+        <div className="bg-white rounded-2xl shadow-lg p-5">
+          <h3 className="text-lg font-bold text-slate-800 mb-1">🏪 경쟁 포화도</h3>
+          <div className="flex items-center gap-4 my-3">
+            <div className="text-center">
+              <div className="text-[36px] font-extrabold text-slate-800">{compCount}</div>
+              <div className="text-xs text-slate-400 font-medium">동종업종</div>
+            </div>
+            <div className="text-center ml-auto">
+              <RiskBadge level={compLevel} />
+              <div className="text-xs text-slate-400 mt-1">밀집도 상위 {compPercentile}%</div>
+            </div>
+          </div>
+          <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={RADAR_DATA}>
-                <PolarGrid stroke="var(--color-border)" strokeDasharray="3 3" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)', fontWeight: 600 }} />
-                <Radar name="상권" dataKey="A" stroke="var(--color-trust-blue)" strokeWidth={2} fill="var(--color-trust-blue)" fillOpacity={0.2} />
+              <RadarChart data={MOCK_RADAR}>
+                <PolarGrid stroke="#E2E8F0" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 12 }} />
+                <Radar dataKey="A" stroke="#2563EB" fill="#2563EB" fillOpacity={0.15} strokeWidth={2} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
-        </ReportCard>
+          <AIInsight text={compInsight} />
+        </div>
 
-
-        {/* [Paid Tier 영역] */}
-        {isUnlocked ? (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 flex flex-col gap-3 mt-2">
-            
-            {/* 카드 4: 업종별 매출 잠재력 */}
-            <ReportCard 
-              title="예상 월매출 잠재력" 
-              aiComment="이 상권에서 카페는 중위 매출 기준 월 2,400만원이 예상됩니다."
-            >
-              <div className="h-48 w-full mt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={REVENUE_DATA} layout="vertical" margin={{ top: 0, right: 30, left: 30, bottom: 0 }}>
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 13, fontWeight: 600 }} />
-                    <Tooltip formatter={(value) => `${value}만원`} cursor={{fill: 'var(--color-slate-100)'}} />
-                    <Bar dataKey="value" fill="var(--color-trust-blue)" radius={[0, 6, 6, 0]} barSize={28} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="text-center font-bold text-2xl text-trust-blue mt-4 bg-trust-blue/5 py-3 rounded-xl border border-trust-blue/10">
-                1,800만 ~ 3,200만원
-              </div>
-            </ReportCard>
-
-            {/* 카드 5: 임대료 감당력 시뮬레이터 */}
-            <ReportCard 
-              title="임대료 감당력 시뮬레이션" 
-              aiComment={`월세 ${rent}만원 기준, 하루 ${coffeeCount}잔 판매가 필요합니다. ${profitStatus === 'danger' ? '위험' : profitStatus === 'caution' ? '주의' : '안전'} 구간입니다.`}
-            >
-              <div className="flex flex-col gap-6 py-4">
-                <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <span className="font-bold text-slate-700">예상 월세 입력</span>
-                  <div className="text-2xl font-black text-trust-blue">{rent}<span className="text-base font-bold ml-1 text-slate-600">만원</span></div>
-                </div>
-                
-                <div className="px-2">
-                  <Slider 
-                    defaultValue={[200]} 
-                    max={500} 
-                    min={100} 
-                    step={10} 
-                    value={[rent]}
-                    onValueChange={(val) => setRent(Array.isArray(val) ? val[0] : val)}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs font-medium text-slate-400 mt-2">
-                    <span>100만</span>
-                    <span>500만</span>
-                  </div>
-                </div>
-                
-                <div className="border-2 border-slate-100 rounded-2xl p-6 text-center mt-2 flex flex-col items-center gap-4 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-100">
-                    <div className={`h-full transition-all duration-500 ${profitStatus === 'danger' ? 'bg-warning-red' : profitStatus === 'caution' ? 'bg-caution-yellow' : 'bg-safe-green'}`} style={{ width: `${(rent/500)*100}%` }}></div>
-                  </div>
-                  <TrafficLightBadge status={profitStatus} />
-                  <div className="text-lg font-bold text-slate-700 leading-snug mt-2">
-                    손익분기점 달성하려면<br/>
-                    <span className="text-3xl font-black text-slate-900 mt-2 inline-block">하루 {coffeeCount}잔</span> 판매
-                  </div>
-                </div>
-              </div>
-            </ReportCard>
-
-            {/* 카드 6: 폐업 리스크 점수 (게이지 추가 및 개선) */}
-            <ReportCard 
-              title="폐업 리스크 진단" 
-              aiComment="주변 폐업률이 높은 편이지만, 신규 유입도 활발해 기회가 있습니다."
-            >
-              <div className="flex flex-col gap-6 py-2">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="text-sm font-bold text-slate-500">종합 위험도 점수</div>
-                  <div className="flex items-baseline gap-1">
-                    <span className={`text-5xl font-black tracking-tighter ${getRiskTextClass(closureRiskScore)}`}>{closureRiskScore}</span>
-                    <span className="text-lg font-bold text-slate-400">/ 100</span>
-                  </div>
-                  
-                  {/* 수평 위험도 게이지 */}
-                  <div className="w-full mt-4">
-                    <div className="flex justify-between text-xs font-bold text-slate-400 mb-2 px-1">
-                      <span>안전</span>
-                      <span>주의</span>
-                      <span>위험</span>
-                    </div>
-                    <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden relative flex">
-                      <div className="h-full bg-safe-green/20" style={{ width: '40%' }}></div>
-                      <div className="h-full bg-caution-yellow/20" style={{ width: '30%' }}></div>
-                      <div className="h-full bg-warning-red/20" style={{ width: '30%' }}></div>
-                      {/* 인디케이터 바 */}
-                      <div 
-                        className={`absolute top-0 bottom-0 left-0 transition-all duration-1000 ease-out ${getRiskColor(closureRiskScore)}`} 
-                        style={{ width: `${closureRiskScore}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 border rounded-xl p-5">
-                  <div className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-warning-red" />
-                    <span>주요 위험 요인 Top 3</span>
-                  </div>
-                  <ul className="space-y-4">
-                    <li className="flex items-start gap-3">
-                      <div className="mt-0.5 bg-white p-1.5 rounded-lg border shadow-sm shrink-0">
-                        <TrendingDown className="w-4 h-4 text-warning-red" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-base">최근 1년 임대료 급등</div>
-                        <div className="text-sm text-slate-500 mt-0.5">상권 평균 대비 15% 상승</div>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="mt-0.5 bg-white p-1.5 rounded-lg border shadow-sm shrink-0">
-                        <Store className="w-4 h-4 text-caution-yellow" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-base">경쟁 매장 과밀화</div>
-                        <div className="text-sm text-slate-500 mt-0.5">반경 300m 내 동종업종 12개</div>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="mt-0.5 bg-white p-1.5 rounded-lg border shadow-sm shrink-0">
-                        <BadgeAlert className="w-4 h-4 text-slate-400" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-base">주말 유동인구 감소</div>
-                        <div className="text-sm text-slate-500 mt-0.5">오피스 상권 특성상 주말 매출 저조</div>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </ReportCard>
-
-            {/* 하단 공유 액션 바 (가로 3등분) 및 면책조항/워터마크 */}
-            <div className="mt-10 mb-6 bg-white rounded-2xl p-6 border shadow-sm">
-              <div className="flex gap-3 w-full mb-8">
-                <Button variant="outline" className="flex-1 h-14 bg-[#FEE500] hover:bg-[#FEE500]/90 text-black border-none font-bold text-sm shadow-sm flex flex-col gap-1 rounded-xl">
-                  <Share2 className="h-5 w-5" />
-                  카톡 공유
-                </Button>
-                <Button variant="outline" className="flex-1 h-14 bg-slate-800 hover:bg-slate-700 text-white border-none font-bold text-sm shadow-sm flex flex-col gap-1 rounded-xl">
-                  <Download className="h-5 w-5" />
-                  PDF 다운
-                </Button>
-                <Button variant="outline" className="flex-1 h-14 bg-white font-bold text-sm shadow-sm flex flex-col gap-1 rounded-xl border-2">
-                  <Copy className="h-5 w-5 text-slate-600" />
-                  링크 복사
-                </Button>
-              </div>
-              
-              <div className="flex flex-col items-center text-center gap-4">
-                <div className="font-black text-slate-300 text-xl tracking-widest flex items-center gap-2">
-                  <span className="text-trust-blue/40">명당노트</span> 
-                  <span className="text-slate-200">|</span> 
-                  <span className="text-sm tracking-normal font-bold">myeongdangnote.com</span>
-                </div>
-                <p className="text-[11px] leading-relaxed text-slate-400 font-medium">
-                  본 리포트는 공공데이터를 기반으로 추정한 수치로, 실제와 다를 수 있으며 투자 결과에 대한 법적 책임은 지지 않습니다. 명당노트의 AI 상권 예측 알고리즘에 의해 자동 생성되었습니다.
-                </p>
+        {/* ===== 페이월 ===== */}
+        {!isUnlocked && (
+          <div className="relative">
+            <div className="bg-white rounded-2xl shadow-lg p-5 blur-[8px] pointer-events-none select-none">
+              <h3 className="text-lg font-bold">💰 예상 월매출 범위</h3>
+              <div className="flex gap-4 my-4">
+                <div className="text-center flex-1"><div className="text-2xl font-bold">1,800만</div><div className="text-xs text-slate-400">하위 25%</div></div>
+                <div className="text-center flex-1"><div className="text-3xl font-extrabold text-blue-600">2,400만</div><div className="text-xs">중위</div></div>
+                <div className="text-center flex-1"><div className="text-2xl font-bold">3,200만</div><div className="text-xs text-slate-400">상위 25%</div></div>
               </div>
             </div>
-
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+                <Lock className="w-7 h-7 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-800 mb-2">이 매장의 예상 월 매출이<br />궁금하신가요?</h3>
+              <p className="text-sm text-slate-500 mb-4 leading-relaxed">경쟁사 매출 분포 · 생존확률 · 실패 원인을<br />숫자로 확인하고, &apos;감&apos; 대신 &apos;확률&apos;로 결정하세요.</p>
+              <Button onClick={() => setIsUnlocked(true)} className="w-full h-14 text-lg font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg">
+                <Coffee className="w-5 h-5 mr-2" />내 리포트 전체 보기 — ₩4,900
+              </Button>
+              <p className="text-xs text-slate-400 mt-3">신용카드 불필요 · 카카오페이 3초 결제</p>
+              <p className="text-xs text-blue-600 font-bold mt-1">점포 선정 실패 비용 5,000만원 방어하기</p>
+            </div>
           </div>
-        ) : (
-          <BlurOverlay onUnlock={handleUnlock} title="이 상권의 진짜 가치, 확인해볼까요?">
-            <div className="flex flex-col gap-3">
-              <ReportCard title="예상 월매출 잠재력">
-                <div className="h-56 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-bold">
-                  상세 차트가 블러 처리되었습니다
-                </div>
-              </ReportCard>
-              <ReportCard title="임대료 감당력 시뮬레이션">
-                <div className="h-56 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-bold">
-                  시뮬레이터가 블러 처리되었습니다
-                </div>
-              </ReportCard>
-            </div>
-          </BlurOverlay>
         )}
+
+        {/* ===== Paid 카드 (결제 후) ===== */}
+        {isUnlocked && (
+          <>
+            <div className="bg-white rounded-2xl shadow-lg p-5">
+              <h3 className="text-lg font-bold text-slate-800 mb-4">💰 예상 월매출 범위</h3>
+              <div className="flex items-end gap-2 mb-4">
+                <div className="text-center flex-1"><div className="text-[22px] font-bold text-slate-500">1,800만</div><div className="text-xs text-slate-400">하위 25%</div></div>
+                <div className="text-center flex-1"><div className="text-[36px] font-extrabold text-blue-600">2,400만</div><div className="text-xs font-bold text-blue-600">중위 (P50)</div></div>
+                <div className="text-center flex-1"><div className="text-[22px] font-bold text-slate-500">3,200만</div><div className="text-xs text-slate-400">상위 25%</div></div>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-4 relative overflow-hidden">
+                <div className="absolute left-[20%] right-[30%] bg-gradient-to-r from-blue-300 via-blue-600 to-blue-300 h-4" />
+              </div>
+              <div className="flex items-center gap-1 mt-3"><span className="text-sm text-slate-500">신뢰도</span><span className="text-blue-600">★★★★</span><span className="text-slate-300">★</span></div>
+              <AIInsight text="이 상권의 카페 중위 매출은 2,400만원이지만, 하위 25%는 1,100만원에 불과합니다. 상위 25%에 진입해야 안정적 운영이 가능합니다." />
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg p-5">
+              <h3 className="text-lg font-bold text-slate-800 mb-4">🧮 임대료 감당력 시뮬레이터</h3>
+              <div className="mb-4">
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm font-medium text-slate-600">월세</span>
+                  <span className="text-lg font-extrabold text-slate-800">{monthlyRent}만원</span>
+                </div>
+                <Slider value={rent} onValueChange={setRent} min={50} max={500} step={10} className="mt-2" />
+                <div className="flex justify-between text-xs text-slate-400 mt-1"><span>50만</span><span>500만</span></div>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-4 text-center">
+                <p className="text-sm text-slate-500 mb-1">손익분기점 일일 판매량</p>
+                <div className="flex items-center justify-center gap-2">
+                  <Coffee className="w-6 h-6 text-amber-600" />
+                  <span className="text-[40px] font-extrabold text-slate-800">{dailyCoffee}</span>
+                  <span className="text-lg text-slate-500 font-medium">잔/일</span>
+                </div>
+                <div className="mt-3"><RiskBadge level={rentRisk} /></div>
+              </div>
+              <AIInsight text={`월세 ${monthlyRent}만원 기준, 하루 ${dailyCoffee}잔 판매가 필요합니다. ${rentRisk === 'safe' ? '안정적인 수준입니다.' : rentRisk === 'caution' ? '월세 조정을 검토해보세요.' : '구조적으로 어렵습니다. 대안 입지를 권장합니다.'}`} />
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg p-5">
+              <h3 className="text-lg font-bold text-slate-800 mb-4">⚠️ 폐업 리스크 조기경보</h3>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="text-center">
+                  <div className="text-[40px] font-extrabold" style={{ color: closureScore >= 60 ? '#DC2626' : closureScore >= 30 ? '#F59E0B' : '#16A34A' }}>{closureScore}</div>
+                  <div className="text-xs text-slate-400">/ 100</div>
+                </div>
+                <div className="flex-1">
+                  <div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+                    <div className="h-4 transition-all duration-700" style={{ width: `${closureScore}%`, background: 'linear-gradient(90deg, #16A34A 0%, #F59E0B 50%, #DC2626 100%)' }} />
+                  </div>
+                  <div className="mt-2"><RiskBadge level={closureLevel} /></div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { icon: <TrendingDown className="w-4 h-4" />, text: '경쟁 급증', pct: 45 },
+                  { icon: <Store className="w-4 h-4" />, text: '임대료 상승', pct: 30 },
+                  { icon: <AlertTriangle className="w-4 h-4" />, text: '유동 감소', pct: 25 },
+                ].map((f, i) => (
+                  <div key={i} className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-2.5">
+                    <span className="text-slate-400">{f.icon}</span>
+                    <span className="text-sm font-medium text-slate-700 flex-1">{f.text}</span>
+                    <span className="text-sm font-bold text-slate-500">{f.pct}%</span>
+                  </div>
+                ))}
+              </div>
+              <AIInsight text="주변 동종 3년 폐업률이 42%로 높은 편이지만, 최근 6개월 신규 프랜차이즈 진입이 늘어 안정화 가능성이 있습니다." />
+            </div>
+          </>
+        )}
+
+        {/* ===== 하단 ===== */}
+        <div className="mt-6 space-y-3">
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1 h-12 text-sm font-bold rounded-xl gap-2"><Share2 className="w-4 h-4" />카카오 공유</Button>
+            <Button variant="outline" className="flex-1 h-12 text-sm font-bold rounded-xl gap-2"><Download className="w-4 h-4" />PDF 저장</Button>
+            <Button variant="outline" className="flex-1 h-12 text-sm font-bold rounded-xl gap-2"><Copy className="w-4 h-4" />링크 복사</Button>
+          </div>
+          <p className="text-[11px] text-slate-400 leading-relaxed text-center px-4">
+            ⚖️ 본 리포트는 공공데이터를 기반으로 추정한 수치로, 실제와 다를 수 있으며 투자 결과에 대한 법적 책임은 지지 않습니다.
+          </p>
+          <div className="text-center text-xs text-slate-300 pb-4">명당노트 AI 상권 분석 | myeongdangnote.com</div>
+        </div>
       </div>
 
+      {/* Sticky 결제 버튼 */}
       {!isUnlocked && (
-        <StickyPayButton onClick={handleUnlock} label="☕ 커피 한 잔 값으로 분석 결과 열기" />
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-t px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <Button onClick={() => setIsUnlocked(true)} className="w-full h-14 text-lg font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg">
+            <Coffee className="w-5 h-5 mr-2" />내 리포트 전체 보기 — ₩4,900
+          </Button>
+        </div>
       )}
     </main>
   );
