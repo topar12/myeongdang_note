@@ -244,11 +244,18 @@ function SearchContent() {
 
   const canAnalyze = coordinates && selectedCategory;
 
-  return (
-    <main className="flex flex-col min-h-screen bg-white">
+  const [panelOpen, setPanelOpen] = useState(false);
 
-      {/* 지도 — 고정 높이, 스크롤과 분리 */}
-      <div className="relative h-[45vh] min-h-[280px] max-h-[400px]">
+  // 위치 선택되면 패널 자동 열기
+  useEffect(() => {
+    if (coordinates && address) setPanelOpen(true);
+  }, [coordinates, address]);
+
+  return (
+    <main className="relative h-screen overflow-hidden bg-white">
+
+      {/* 지도 — 전체 화면 */}
+      <div className="absolute inset-0">
         <div ref={mapRef} className="w-full h-full" />
 
         {/* 검색바 오버레이 */}
@@ -285,36 +292,41 @@ function SearchContent() {
         </button>
       </div>
 
-      {/* 하단 패널 — 스크롤 가능한 영역 */}
-      <div className="flex-1 bg-white rounded-t-[24px] -mt-4 relative z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        {/* 핸들 바 */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-10 h-1 bg-slate-200 rounded-full" />
-        </div>
-
-        <div className="px-5 pb-8 space-y-5">
-
-          {/* 선택된 위치 */}
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <MapPin className="h-4 w-4 text-blue-600 shrink-0" />
-              <span className="font-bold text-[15px] text-slate-800 truncate">
-                {address || '지도를 터치하여 위치를 선택하세요'}
-              </span>
-            </div>
-            {nearbyCount !== null && (
-              <p className="text-xs text-slate-400 ml-6">반경 500m · 상가 {nearbyCount.toLocaleString()}개</p>
-            )}
+      {/* 하단 플로팅 카드 — 지도 위에 떠있음 */}
+      <div className={`absolute bottom-0 left-0 right-0 z-20 transition-all duration-300 ease-out ${panelOpen ? 'translate-y-0' : 'translate-y-[calc(100%-64px)]'}`}>
+        {/* 접힌 상태: 주소만 보이는 미니 바 */}
+        <div
+          className="bg-white rounded-t-[20px] shadow-[0_-4px_30px_rgba(0,0,0,0.12)] cursor-pointer"
+          onClick={() => setPanelOpen(!panelOpen)}
+        >
+          {/* 핸들 바 */}
+          <div className="flex justify-center pt-2.5 pb-1">
+            <div className="w-10 h-1 bg-slate-300 rounded-full" />
           </div>
 
+          {/* 미니 주소 바 (항상 보임) */}
+          <div className="px-5 pb-3 flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-blue-600 shrink-0" />
+            <span className="font-bold text-[14px] text-slate-800 truncate flex-1">
+              {address || '지도를 터치하여 위치 선택'}
+            </span>
+            {nearbyCount !== null && (
+              <span className="text-[11px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full shrink-0">{nearbyCount}개</span>
+            )}
+            <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${panelOpen ? 'rotate-180' : ''}`} />
+          </div>
+        </div>
+
+        {/* 펼쳐진 상태: 업종 + 버튼 */}
+        <div className="bg-white px-5 pb-8 space-y-4">
           {/* 업종 선택 */}
           <div>
-            <label className="text-sm font-bold text-slate-600 mb-2 block">분석 업종</label>
+            <label className="text-[12px] font-bold text-slate-500 mb-1.5 block">분석 업종</label>
             <div className="relative">
               <select
                 value={selectedCategory || ''}
                 onChange={(e) => setSelectedCategory(e.target.value || null)}
-                className="w-full h-13 px-4 pr-10 rounded-xl border-2 border-slate-200 bg-white text-[15px] font-bold text-slate-800 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer transition-colors"
+                className="w-full h-12 px-4 pr-10 rounded-xl border-2 border-slate-200 bg-white text-[15px] font-bold text-slate-800 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer"
               >
                 <option value="">업종을 선택하세요</option>
                 {CATEGORIES.map(g => (
@@ -329,23 +341,16 @@ function SearchContent() {
             </div>
           </div>
 
-          {/* 분석 시작 버튼 */}
+          {/* 분석 시작 */}
           <Button
             onClick={handleAnalyze}
             disabled={!canAnalyze}
-            className="w-full h-14 text-[16px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none transition-all"
+            className="w-full h-14 text-[16px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
           >
-            {canAnalyze ? (
-              <><Sparkles className="w-5 h-5 mr-2" /> AI 상권 분석 시작</>
-            ) : (
-              '위치와 업종을 선택하세요'
-            )}
+            {canAnalyze ? <><Sparkles className="w-5 h-5 mr-2" /> AI 상권 분석 시작</> : '위치와 업종을 선택하세요'}
           </Button>
 
-          {/* 안내 텍스트 */}
-          <p className="text-[11px] text-slate-400 text-center">
-            반경 500m · 142만개 점포 DB · Gemini AI 분석
-          </p>
+          <p className="text-[11px] text-slate-400 text-center">반경 500m · 142만개 점포 · Gemini AI</p>
         </div>
       </div>
     </main>
