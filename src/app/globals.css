@@ -1,3 +1,4 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -5,11 +6,22 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-trust-blue: var(--trust-blue);
+  --color-warning-red: var(--warning-red);
+  --color-safe-green: var(--safe-green);
+  --color-caution-yellow: var(--caution-yellow);
+  --font-size-base: var(--font-size-base);
+  --font-size-heading: var(--font-size-heading);
+  --font-size-hero: var(--font-size-hero);
+  --spacing-touch-target: var(--touch-target-min);
+  --radius-card: var(--card-radius);
+  --shadow-card: var(--card-shadow);
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: "Pretendard", "sans-serif";
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: "Pretendard", "sans-serif";
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,13 +61,23 @@
 }
 
 :root {
+  --trust-blue: #2563EB;
+  --warning-red: #DC2626;
+  --safe-green: #16A34A;
+  --caution-yellow: #F59E0B;
+  --font-size-base: 18px;
+  --font-size-heading: 28px;
+  --font-size-hero: 36px;
+  --touch-target-min: 44px;
+  --card-radius: 16px;
+  --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: oklch(0.488 0.243 264.376); /* Trust Blue #2563EB approx */
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -63,10 +85,10 @@
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: oklch(0.577 0.245 27.325); /* Warning Red approx */
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.488 0.243 264.376);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -90,8 +112,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.488 0.243 264.376);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -101,7 +123,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.488 0.243 264.376);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -126,5 +148,6 @@
   }
   html {
     @apply font-sans;
+    font-size: 18px; /* 5060세대 가독성 */
   }
 }
