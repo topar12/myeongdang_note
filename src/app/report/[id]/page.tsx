@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, PieChart, Pie, Cell } from 'recharts';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
+import { ScoreGauge } from '@/components/report/ScoreGauge';
 import { Download, Share2, Copy, Lock, AlertTriangle, TrendingDown, Store, Coffee, ArrowUp, ArrowRight, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -47,26 +48,7 @@ function AIInsight({ text }: { text: string }) {
   );
 }
 
-function ScoreGauge({ score }: { score: number }) {
-  const data = [{ value: score }, { value: 100 - score }];
-  const color = score >= 70 ? '#DC2626' : score >= 40 ? '#F59E0B' : '#2563EB';
-  return (
-    <div className="relative w-full h-44">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie data={data} cx="50%" cy="90%" startAngle={180} endAngle={0} innerRadius="65%" outerRadius="90%" dataKey="value" stroke="none">
-            <Cell fill={color} />
-            <Cell fill="#E2E8F0" />
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="absolute inset-0 flex flex-col items-center justify-end pb-6">
-        <span className="text-[42px] font-extrabold leading-none" style={{ color }}>{score}</span>
-        <span className="text-sm text-slate-400 font-medium mt-1">/ 100점</span>
-      </div>
-    </div>
-  );
-}
+// ScoreGauge는 @/components/report/ScoreGauge에서 import
 
 export default function ReportPage() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
@@ -139,11 +121,7 @@ export default function ReportPage() {
         {/* ===== Free 카드 1: 상권 온도 ===== */}
         <div className="bg-white rounded-2xl shadow-lg p-5">
           <h3 className="text-lg font-bold text-slate-800 mb-1">🌡 상권 온도 스코어</h3>
-          <ScoreGauge score={tempScore} />
-          <div className="flex items-center justify-center gap-4 mt-2">
-            <TrendIcon trend={tempTrend} />
-            <span className="text-sm text-slate-500 font-medium">상위 {tempPercentile}%</span>
-          </div>
+          <ScoreGauge score={tempScore} trend={tempTrend as 'up' | 'down' | 'flat'} label={`상위 ${tempPercentile}%`} />
           <AIInsight text={tempInsight} />
         </div>
 
